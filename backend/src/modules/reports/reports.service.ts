@@ -128,23 +128,39 @@ export async function getFleetUtilizationReport() {
 
 // ─── Operational Cost Report ───────────────────────────────────────────────────
 // Operational cost = Fuel + Maintenance (per spec §3.7 — expenses shown separately)
+//
+// Each cost table is pre-aggregated in a subquery before joining to Vehicle.
+// Without this, joining FuelLog + MaintenanceLog + Expense flat on vehicleId creates
+// a Cartesian product (N fuel rows × M maintenance rows), making every SUM wrong.
 
 export async function getOperationalCostReport() {
   const results = await db.$queryRaw<
     { vehicleId: string; registration: string; fuelCost: number; maintenanceCost: number; operationalCost: number; expenseCost: number }[]
   >(Prisma.sql`
     SELECT
-      v.id             AS "vehicleId",
-      v."registrationNumber" AS registration,
-      COALESCE(SUM(fl."totalCost"), 0)::float  AS "fuelCost",
-      COALESCE(SUM(ml.cost), 0)::float          AS "maintenanceCost",
-      (COALESCE(SUM(fl."totalCost"), 0) + COALESCE(SUM(ml.cost), 0))::float AS "operationalCost",
-      COALESCE(SUM(ex.amount), 0)::float        AS "expenseCost"
+      v.id                                           AS "vehicleId",
+      v."registrationNumber"                         AS registration,
+      COALESCE(fuel.total, 0)::float                 AS "fuelCost",
+      COALESCE(maint.total, 0)::float                AS "maintenanceCost",
+      (COALESCE(fuel.total, 0) + COALESCE(maint.total, 0))::float AS "operationalCost",
+      COALESCE(exp.total, 0)::float                  AS "expenseCost"
     FROM "Vehicle" v
-    LEFT JOIN "FuelLog"        fl ON fl."vehicleId" = v.id
-    LEFT JOIN "MaintenanceLog" ml ON ml."vehicleId" = v.id
-    LEFT JOIN "Expense"        ex ON ex."vehicleId" = v.id
-    GROUP BY v.id, v."registrationNumber"
+    LEFT JOIN (
+      SELECT "vehicleId", SUM("totalCost") AS total
+      FROM "FuelLog"
+      GROUP BY "vehicleId"
+    ) fuel  ON fuel."vehicleId" = v.id
+    LEFT JOIN (
+      SELECT "vehicleId", SUM(cost) AS total
+      FROM "MaintenanceLog"
+      GROUP BY "vehicleId"
+    ) maint ON maint."vehicleId" = v.id
+    LEFT JOIN (
+      SELECT "vehicleId", SUM(amount) AS total
+      FROM "Expense"
+      WHERE "vehicleId" IS NOT NULL
+      GROUP BY "vehicleId"
+    ) exp   ON exp."vehicleId" = v.id
     ORDER BY "operationalCost" DESC
   `);
 
@@ -153,30 +169,45 @@ export async function getOperationalCostReport() {
 
 // ─── Vehicle ROI Report ────────────────────────────────────────────────────────
 // ROI = (Revenue − (Maintenance + Fuel)) / Acquisition Cost (per spec formula)
+//
+// Same pre-aggregation pattern: each source table aggregated independently
+// before joining, so cross-table fan-out cannot inflate the sums.
 
 export async function getVehicleRoiReport() {
   const results = await db.$queryRaw<
     { vehicleId: string; registration: string; revenue: number; fuelCost: number; maintenanceCost: number; acquisitionCost: number; roi: number }[]
   >(Prisma.sql`
     SELECT
-      v.id             AS "vehicleId",
-      v."registrationNumber" AS registration,
-      COALESCE(SUM(t.revenue), 0)::float        AS revenue,
-      COALESCE(SUM(fl."totalCost"), 0)::float   AS "fuelCost",
-      COALESCE(SUM(ml.cost), 0)::float          AS "maintenanceCost",
-      v."purchaseCost"::float                   AS "acquisitionCost",
+      v.id                                           AS "vehicleId",
+      v."registrationNumber"                         AS registration,
+      COALESCE(trips.revenue, 0)::float              AS revenue,
+      COALESCE(fuel.total, 0)::float                 AS "fuelCost",
+      COALESCE(maint.total, 0)::float                AS "maintenanceCost",
+      v."purchaseCost"::float                        AS "acquisitionCost",
       CASE WHEN v."purchaseCost" = 0 THEN 0
            ELSE ROUND(
-             ((COALESCE(SUM(t.revenue), 0) - COALESCE(SUM(fl."totalCost"), 0) - COALESCE(SUM(ml.cost), 0))
+             ((COALESCE(trips.revenue, 0) - COALESCE(fuel.total, 0) - COALESCE(maint.total, 0))
               / v."purchaseCost" * 100)::numeric,
              2
            )::float
       END AS roi
     FROM "Vehicle" v
-    LEFT JOIN "Trip"           t  ON t."vehicleId" = v.id AND t.status = 'COMPLETED'
-    LEFT JOIN "FuelLog"        fl ON fl."vehicleId" = v.id
-    LEFT JOIN "MaintenanceLog" ml ON ml."vehicleId" = v.id
-    GROUP BY v.id, v."registrationNumber", v."purchaseCost"
+    LEFT JOIN (
+      SELECT "vehicleId", SUM(revenue) AS revenue
+      FROM "Trip"
+      WHERE status = 'COMPLETED'
+      GROUP BY "vehicleId"
+    ) trips ON trips."vehicleId" = v.id
+    LEFT JOIN (
+      SELECT "vehicleId", SUM("totalCost") AS total
+      FROM "FuelLog"
+      GROUP BY "vehicleId"
+    ) fuel  ON fuel."vehicleId" = v.id
+    LEFT JOIN (
+      SELECT "vehicleId", SUM(cost) AS total
+      FROM "MaintenanceLog"
+      GROUP BY "vehicleId"
+    ) maint ON maint."vehicleId" = v.id
     ORDER BY roi DESC
   `);
 

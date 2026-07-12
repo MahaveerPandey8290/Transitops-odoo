@@ -6,6 +6,7 @@ import {
   Navigate
 } from "react-router-dom";
 
+import { isAuthenticated } from "./api/client";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -18,124 +19,34 @@ import Maintenance from "./pages/Maintenance";
 import FuelManagement from "./pages/FuelManagement";
 import Analytics from "./pages/Analytics";
 
-
-
-function App() {
-
-  return (
-
-    <Router>
-
-      <Routes>
-
-
-        {/* Authentication */}
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
-        <Route
-          path="/signup"
-          element={<Signup />}
-        />
-
-
-
-        {/* Dashboard */}
-
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
-
-
-
-        {/* Fleet */}
-
-        <Route
-          path="/fleet"
-          element={<VehicleRegistry />}
-        />
-
-
-
-        {/* Drivers */}
-
-        <Route
-          path="/drivers"
-          element={<Drivers />}
-        />
-
-
-
-        {/* Trips */}
-
-        <Route
-          path="/trip-dispatcher"
-          element={<TripDispatcher />}
-        />
-
-
-
-        {/* Maintenance */}
-
-        <Route
-          path="/maintenance"
-          element={<Maintenance />}
-        />
-
-
-
-        {/* Fuel Management */}
-
-        <Route
-          path="/fuel-management"
-          element={<FuelManagement />}
-        />
-
-
-
-        {/* Analytics */}
-
-        <Route
-          path="/analytics"
-          element={<Analytics />}
-        />
-
-
-
-        {/* Settings */}
-
-        <Route
-          path="/settings"
-          element={<Settings />}
-        />
-
-
-
-        {/* Default */}
-
-        <Route
-          path="*"
-          element={
-            <Navigate
-              to="/login"
-              replace
-            />
-          }
-        />
-
-
-      </Routes>
-
-
-    </Router>
-
-  );
-
+// Guards any route behind a valid JWT in localStorage
+function PrivateRoute({ element }) {
+  return isAuthenticated() ? element : <Navigate to="/login" replace />;
 }
 
+function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Authentication — accessible without a token */}
+        <Route path="/login"  element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Protected routes */}
+        <Route path="/dashboard"       element={<PrivateRoute element={<Dashboard />} />} />
+        <Route path="/fleet"           element={<PrivateRoute element={<VehicleRegistry />} />} />
+        <Route path="/drivers"         element={<PrivateRoute element={<Drivers />} />} />
+        <Route path="/trip-dispatcher" element={<PrivateRoute element={<TripDispatcher />} />} />
+        <Route path="/maintenance"     element={<PrivateRoute element={<Maintenance />} />} />
+        <Route path="/fuel-management" element={<PrivateRoute element={<FuelManagement />} />} />
+        <Route path="/analytics"       element={<PrivateRoute element={<Analytics />} />} />
+        <Route path="/settings"        element={<PrivateRoute element={<Settings />} />} />
+
+        {/* Default */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;

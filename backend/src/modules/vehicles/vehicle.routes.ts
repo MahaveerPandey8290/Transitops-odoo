@@ -39,5 +39,9 @@ router.patch('/:id',
   validate(updateVehicleSchema),
   vehicleController.update
 );
+router.delete('/:id',
+  requireRole(['FLEET_MANAGER']),
+  vehicleController.remove
+);
 
 export default router;

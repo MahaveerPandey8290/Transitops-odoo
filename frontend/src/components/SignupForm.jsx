@@ -1,21 +1,22 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, Loader2 } from 'lucide-react';
-import RoleSelect from './RoleSelect';
+import { Mail, Lock, Eye, EyeOff, User, Loader2, AlertCircle } from 'lucide-react';
 import AuthFooter from './AuthFooter';
 import PasswordStrength from './PasswordStrength';
+import { authApi, storeAuth } from '../api/client';
 
 export default function SignupForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    role: '',
     password: '',
     confirmPassword: '',
-    role: '',
   });
 
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,63 +34,43 @@ export default function SignupForm() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+    if (apiError) setApiError('');
   };
 
   const validate = () => {
     const tempErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!formData.name.trim()) {
-      tempErrors.name = 'Full name is required';
-    }
-
-    if (!formData.email) {
-      tempErrors.email = 'Email address is required';
-    } else if (!emailRegex.test(formData.email)) {
-      tempErrors.email = 'Please enter a valid email address';
-    }
-
-    if (!formData.role) {
-      tempErrors.role = 'Please select your role';
-    }
-
-    // Password validations
+    if (!formData.name.trim()) tempErrors.name = 'Full name is required';
+    if (!formData.email) tempErrors.email = 'Email address is required';
+    else if (!emailRegex.test(formData.email)) tempErrors.email = 'Please enter a valid email address';
+    if (!formData.role) tempErrors.role = 'Please select your role';
     if (!formData.password) {
       tempErrors.password = 'Password is required';
     } else {
       const { hasMinLength, hasAlphanumeric, hasSpecial } = passwordValidations;
-      if (!hasMinLength || !hasAlphanumeric || !hasSpecial) {
-        tempErrors.password = 'Password must meet all requirements';
-      }
+      if (!hasMinLength || !hasAlphanumeric || !hasSpecial) tempErrors.password = 'Password must meet all requirements';
     }
-
-    if (!formData.confirmPassword) {
-      tempErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      tempErrors.confirmPassword = 'Passwords do not match';
-    }
-
+    if (!formData.confirmPassword) tempErrors.confirmPassword = 'Please confirm your password';
+    else if (formData.password !== formData.confirmPassword) tempErrors.confirmPassword = 'Passwords do not match';
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        setIsSuccess(true);
-        // Save selected user role in localStorage
-        localStorage.setItem('userRole', formData.role || 'Dispatcher');
-        setTimeout(() => {
-          setIsSuccess(false);
-          navigate('/dashboard');
-        }, 1200);
-      }, 1800);
+    if (!validate()) return;
+    setIsLoading(true);
+    setApiError('');
+    try {
+      const res = await authApi.register(formData.name, formData.email, formData.password, formData.role);
+      storeAuth(res.data.token, res.data.user);
+      setIsSuccess(true);
+      setTimeout(() => navigate('/dashboard'), 800);
+    } catch (err) {
+      setApiError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -103,6 +84,14 @@ export default function SignupForm() {
           Register your TransitOps account to access the Fleet Management System.
         </p>
       </div>
+
+      {/* API Error Banner */}
+      {apiError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2 text-red-700 text-sm font-medium">
+          <AlertCircle size={16} className="flex-shrink-0" />
+          <span>{apiError}</span>
+        </div>
+      )}
 
       {isSuccess && (
         <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 text-sm text-center animate-fade-in-up font-medium">
@@ -161,13 +150,35 @@ export default function SignupForm() {
           {errors.email && <p className="text-[10px] text-red-500 font-semibold mt-1">{errors.email}</p>}
         </div>
 
-        {/* Role Select Field */}
-        <RoleSelect
-          value={formData.role}
-          onChange={handleChange}
-          error={errors.role}
-          disabled={isLoading}
-        />
+        {/* Role Dropdown */}
+        <div className="space-y-1.5 text-left">
+          <label htmlFor="role" className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
+            Role *
+          </label>
+          <div className="relative">
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              disabled={isLoading}
+              className={`w-full h-[52px] pl-4 pr-10 bg-white border appearance-none ${
+                errors.role ? 'border-red-300 focus:ring-red-100' : 'border-[#E2E8F0] focus:border-[#F59E0B] focus:ring-[#F59E0B]/10'
+              } rounded-[14px] text-sm text-[#0F172A] font-medium outline-none focus:ring-4 transition-all duration-200 cursor-pointer disabled:opacity-60`}
+            >
+              <option value="">Select your role...</option>
+              <option value="FLEET_MANAGER">Fleet Manager</option>
+              <option value="DISPATCHER">Dispatcher</option>
+              <option value="SAFETY_OFFICER">Safety Officer</option>
+              <option value="FINANCIAL_ANALYST">Financial Analyst</option>
+            </select>
+            {/* Chevron icon */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          {errors.role && <p className="text-[10px] text-red-500 font-semibold mt-1">{errors.role}</p>}
+        </div>
 
         {/* Password Field */}
         <div className="space-y-1.5 text-left">

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopNavbar from '../components/TopNavbar';
@@ -12,7 +12,8 @@ import SafetyInsights from '../components/SafetyInsights';
 import DriverBusinessRulesCard from '../components/DriverBusinessRulesCard';
 import EmptyState from '../components/EmptyState';
 import Pagination from '../components/Pagination';
-import { Users, Plus, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Users, Plus, Trash2, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { driverApi, getStoredUser } from '../api/client';
 
 export default function Drivers() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,15 +28,50 @@ export default function Drivers() {
     }
   }, [location.state]);
 
-  // 1. Core State: Drivers compliance data list
-  const [drivers, setDrivers] = useState([
-    { id: 1, name: 'Marcus Aurelius', empId: 'EMP-1001', phone: '+91 9029104821', email: 'marcus.aurelius@transitops.com', address: '12 Rome Way, Sector 1, Jaipur', licenseNumber: 'DL-142021004A', licenseCategory: 'Trailer', issueDate: '2021-03-12', licenseExpiry: '2027-08-30', yearsExperience: 12, emergencyContact: 'Faustina (Wife) - 90291048', bloodGroup: 'O+', vehiclePreference: 'Volvo FH16 Heavy', avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80', status: 'On Trip', safetyScore: 91, tripCompletionRate: 98, completedTrips: 145, cancelledTrips: 2, totalDistance: 92300, assignedVehicle: 'VOL-822' },
-    { id: 2, name: 'Sarah Connor', empId: 'EMP-1002', phone: '+91 9829018401', email: 'sarah.connor@transitops.com', address: '45 Resistance Drive, Sector 5, Jodhpur', licenseNumber: 'DL-142022002B', licenseCategory: 'HMV', issueDate: '2022-01-15', licenseExpiry: '2028-04-12', yearsExperience: 8, emergencyContact: 'John Connor (Son) - 98290180', bloodGroup: 'AB-', vehiclePreference: 'Ford Courier Van', avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80', status: 'Available', safetyScore: 96, tripCompletionRate: 100, completedTrips: 88, cancelledTrips: 0, totalDistance: 45200, assignedVehicle: '' },
-    { id: 3, name: 'Tony Stark', empId: 'EMP-1003', phone: '+91 8029184910', email: 'tony.stark@transitops.com', address: '108 Stark Towers, Malviya Nagar, Jaipur', licenseNumber: 'DL-142023009C', licenseCategory: 'LMV', issueDate: '2023-06-20', licenseExpiry: '2028-09-30', yearsExperience: 15, emergencyContact: 'Pepper Potts (Wife) - 80291840', bloodGroup: 'A+', vehiclePreference: 'Audi Delivery Van', avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=80&q=80', status: 'Off Duty', safetyScore: 98, tripCompletionRate: 95, completedTrips: 210, cancelledTrips: 5, totalDistance: 135400, assignedVehicle: '' },
-    { id: 4, name: 'James Miller', empId: 'EMP-1004', phone: '+91 7890123456', email: 'james.miller@transitops.com', address: '88 Kingsway Road, Mansarovar, Jaipur', licenseNumber: 'DL-142020082D', licenseCategory: 'HMV', issueDate: '2020-09-12', licenseExpiry: '2026-10-25', yearsExperience: 5, emergencyContact: 'Mary Miller (Wife) - 78901234', bloodGroup: 'B+', vehiclePreference: 'Reefer Truck', avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80', status: 'Suspended', safetyScore: 72, tripCompletionRate: 84, completedTrips: 64, cancelledTrips: 8, totalDistance: 38200, assignedVehicle: '' },
-    { id: 5, name: 'Priya Sharma', empId: 'EMP-1005', phone: '+91 9414012345', email: 'priya.sharma@transitops.com', address: '302 Lotus Apartments, Vaishali Nagar, Jaipur', licenseNumber: 'DL-142018041E', licenseCategory: 'HMV', issueDate: '2018-04-10', licenseExpiry: '2026-07-09', yearsExperience: 9, emergencyContact: 'Rakesh Sharma (Father) - 94140120', bloodGroup: 'O-', vehiclePreference: 'Volvo VNL Heavy', avatarUrl: 'https://images.unsplash.com/photo-1534751516642-a131ffd107fd?auto=format&fit=crop&w=80&q=80', status: 'Off Duty', safetyScore: 84, tripCompletionRate: 91, completedTrips: 112, cancelledTrips: 3, totalDistance: 78900, assignedVehicle: '' },
-    { id: 6, name: 'John Carter', empId: 'EMP-1006', phone: '+91 9612048192', email: 'john.carter@transitops.com', address: '12 Virginia Lane, Sector 9, Jaipur', licenseNumber: 'DL-142021088F', licenseCategory: 'Trailer', issueDate: '2021-07-17', licenseExpiry: '2026-07-17', yearsExperience: 6, emergencyContact: 'Dejah Thoris (Spouse) - 96120480', bloodGroup: 'B-', vehiclePreference: 'Flatbed Trailer', avatarUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=80&q=80', status: 'Available', safetyScore: 80, tripCompletionRate: 90, completedTrips: 76, cancelledTrips: 4, totalDistance: 54300, assignedVehicle: '' }
-  ]);
+  const user = getStoredUser();
+  const canWrite = user?.role === 'FLEET_MANAGER' || user?.role === 'SAFETY_OFFICER';
+
+  const [drivers, setDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
+
+  // Map backend enum status → display string used by existing child components
+  const mapDriver = (d) => ({
+    id: d.id,
+    name: d.name,
+    empId: d.employeeId ?? d.id.slice(0, 8).toUpperCase(),
+    phone: d.phone,
+    email: d.email ?? '',
+    address: d.address ?? '',
+    licenseNumber: d.licenseNumber,
+    licenseCategory: d.licenseCategory,
+    licenseExpiry: d.licenseExpiryDate?.slice(0, 10) ?? '',
+    yearsExperience: d.yearsExperience ?? 0,
+    bloodGroup: d.bloodGroup ?? '',
+    avatarUrl: '',
+    status: { AVAILABLE: 'Available', ON_TRIP: 'On Trip', OFF_DUTY: 'Off Duty', SUSPENDED: 'Suspended' }[d.status] ?? d.status,
+    safetyScore: d.safetyScore ?? 85,
+    tripCompletionRate: 95,
+    completedTrips: 0,
+    cancelledTrips: 0,
+    totalDistance: 0,
+    assignedVehicle: '',
+    region: d.region,
+  });
+
+  const loadDrivers = useCallback(async () => {
+    setLoading(true); setApiError('');
+    try {
+      const res = await driverApi.list({ limit: 100 });
+      setDrivers((res.data?.drivers ?? []).map(mapDriver));
+    } catch (err) {
+      setApiError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadDrivers(); }, [loadDrivers]);
 
   // 2. Active Interactivity UI States
   const [filters, setFilters] = useState({ search: '', category: 'all', status: 'all', licenseStatus: 'all', safetyScore: 'all' });
@@ -145,75 +181,57 @@ export default function Drivers() {
   }, [drivers]);
 
   // CRUD Operations
-  const handleOpenRegisterModal = () => {
-    setEditDriver(null);
-    setIsModalOpen(true);
-  };
+  const handleOpenRegisterModal = () => { setEditDriver(null); setIsModalOpen(true); };
+  const handleOpenEditModal = (drv) => { setEditDriver(drv); setIsModalOpen(true); setIsDrawerOpen(false); };
 
-  const handleOpenEditModal = (drv) => {
-    setEditDriver(drv);
-    setIsModalOpen(true);
-    setIsDrawerOpen(false);
-  };
-
-  const handleSaveDriver = (formData) => {
-    if (formData.id) {
-      setDrivers(drivers.map(d => d.id === formData.id ? { ...d, ...formData } : d));
-      showToast(`Driver ${formData.name} updated successfully!`);
-    } else {
-      const newId = drivers.length > 0 ? Math.max(...drivers.map(d => d.id)) + 1 : 1;
-      setDrivers([...drivers, { id: newId, ...formData }]);
-      showToast(`Driver ${formData.name} added successfully!`);
-    }
+  const handleSaveDriver = async (formData) => {
+    try {
+      if (formData.id) {
+        await driverApi.update(formData.id, {
+          name: formData.name, phone: formData.phone, email: formData.email,
+          licenseExpiryDate: formData.licenseExpiry ? new Date(formData.licenseExpiry).toISOString() : undefined,
+          region: formData.region,
+        });
+        showToast(`Driver ${formData.name} updated!`);
+      } else {
+        await driverApi.create({
+          name: formData.name, phone: formData.phone, email: formData.email,
+          licenseNumber: formData.licenseNumber, licenseCategory: formData.licenseCategory,
+          licenseExpiryDate: new Date(formData.licenseExpiry).toISOString(),
+          region: formData.region ?? 'North',
+        });
+        showToast(`Driver ${formData.name} added!`);
+      }
+      await loadDrivers();
+    } catch (err) { showToast(`Error: ${err.message}`); }
     setIsModalOpen(false);
   };
 
-  const handleAssignTrip = (drv) => {
-    setDrivers(drivers.map(d => d.id === drv.id ? { ...d, status: 'On Trip' } : d));
-    showToast(`Trip assigned to ${drv.name}!`);
+  const handleSuspendDriver = async (drv) => {
+    try { await driverApi.update(drv.id, { status: 'SUSPENDED' }); await loadDrivers(); showToast(`Driver ${drv.name} suspended.`); }
+    catch (err) { showToast(`Error: ${err.message}`); }
   };
 
-  const handleSuspendDriver = (drv) => {
-    setDrivers(drivers.map(d => d.id === drv.id ? { ...d, status: 'Suspended' } : d));
-    showToast(`Driver ${drv.name} has been suspended.`);
+  const handleReactivateDriver = async (drv) => {
+    try { await driverApi.update(drv.id, { status: 'AVAILABLE' }); await loadDrivers(); showToast(`Driver ${drv.name} reactivated.`); }
+    catch (err) { showToast(`Error: ${err.message}`); }
   };
 
-  const handleReactivateDriver = (drv) => {
-    setDrivers(drivers.map(d => d.id === drv.id ? { ...d, status: 'Available' } : d));
-    showToast(`Driver ${drv.name} reactivated.`);
+  const handleAssignTrip = (drv) => showToast(`Navigate to Trip Dispatcher to assign a trip to ${drv.name}`);
+  const handleDeleteTrigger = (drv) => setDeleteConfirmationId(drv.id);
+
+  const confirmDelete = async () => {
+    // Backend has no driver DELETE — mark as OFF_DUTY instead
+    const drv = drivers.find(d => d.id === deleteConfirmationId);
+    try { await driverApi.update(deleteConfirmationId, { status: 'OFF_DUTY' }); await loadDrivers(); showToast(`Driver ${drv?.name ?? ''} removed from active roster.`); }
+    catch (err) { showToast(`Error: ${err.message}`); }
+    setDeleteConfirmationId(null); setIsDrawerOpen(false);
   };
 
-  const handleDeleteTrigger = (drv) => {
-    setDeleteConfirmationId(drv.id);
-  };
-
-  const confirmDelete = () => {
-    const deletedDrv = drivers.find(d => d.id === deleteConfirmationId);
-    setDrivers(drivers.filter(d => d.id !== deleteConfirmationId));
-    showToast(`Driver ${deletedDrv ? deletedDrv.name : ''} deleted successfully.`);
-    setDeleteConfirmationId(null);
-    setIsDrawerOpen(false);
-  };
-
-  const handleRefresh = () => {
-    showToast('Driver registry database refreshed!');
-  };
-
-  const handleExportPDF = () => {
-    showToast('Exporting PDF... Opening print window.');
-    setTimeout(() => {
-      window.print();
-    }, 600);
-  };
-
-  const handleRenewLicense = (drv) => {
-    // Add 3 years to current license
-    const newExpiry = new Date();
-    newExpiry.setFullYear(newExpiry.getFullYear() + 3);
-    const dateStr = newExpiry.toISOString().split('T')[0];
-
-    setDrivers(drivers.map(d => d.id === drv.id ? { ...d, licenseExpiry: dateStr } : d));
-    showToast(`License renewed for ${drv.name} until ${dateStr}!`);
+  const handleRenewLicense = async (drv) => {
+    const newExpiry = new Date(); newExpiry.setFullYear(newExpiry.getFullYear() + 3);
+    try { await driverApi.update(drv.id, { licenseExpiryDate: newExpiry.toISOString() }); await loadDrivers(); showToast(`License renewed for ${drv.name}!`); }
+    catch (err) { showToast(`Error: ${err.message}`); }
   };
 
   return (
@@ -281,97 +299,79 @@ export default function Drivers() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="text-left">
               <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">Drivers & Safety Profiles</h1>
-              <p className="text-sm text-[#9CA3AF] mt-1.5 font-medium max-w-2xl leading-relaxed">Manage drivers, licenses, availability and safety compliance across your fleet.</p>
+              <p className="text-sm text-[#9CA3AF] mt-1.5 font-medium">Manage drivers, licenses, availability and safety compliance.</p>
             </div>
-            
-            <button
-              onClick={handleOpenRegisterModal}
-              className="h-11 px-5 bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#F59E0B]/10 hover:-translate-y-0.5 active:scale-95 self-start sm:self-auto"
-            >
-              <Plus size={16} />
-              <span>Add Driver</span>
-            </button>
+            {canWrite && (
+              <button onClick={handleOpenRegisterModal}
+                className="h-11 px-5 bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#F59E0B]/10 hover:-translate-y-0.5 active:scale-95 self-start sm:self-auto">
+                <Plus size={16} /><span>Add Driver</span>
+              </button>
+            )}
           </div>
 
-          {/* Summary Cards Grid */}
-          <DriverSummaryCards stats={statsSummary} />
-
-          {/* Filter Bar Panel */}
-          <DriverFilters 
-            onFilterChange={(newFilters) => {
-              setFilters(newFilters);
-              setCurrentPage(1);
-            }} 
-            onRefresh={handleRefresh}
-            onExportPDF={handleExportPDF}
-          />
-
-          {/* Main Layout Split */}
-          {filteredDrivers.length > 0 ? (
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
-              {/* Driver Grid Table */}
-              <div className="xl:col-span-3 space-y-5">
-                <DriverTable 
-                  drivers={paginatedDrivers}
-                  onView={(drv) => {
-                    setSelectedDriver(drv);
-                    setIsDrawerOpen(true);
-                  }}
-                  onEdit={handleOpenEditModal}
-                  onAssignTrip={handleAssignTrip}
-                  onSuspend={handleSuspendDriver}
-                  onReactivate={handleReactivateDriver}
-                  onDelete={handleDeleteTrigger}
-                  onSort={(key, dir) => setSortConfig({ key, direction: dir })}
-                  sortConfig={sortConfig}
-                />
-                
-                {/* Pagination Controls */}
-                <Pagination 
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={filteredDrivers.length}
-                  pageSize={pageSize}
-                  onPageChange={(page) => setCurrentPage(page)}
-                  onPageSizeChange={(size) => {
-                    setPageSize(size);
-                    setCurrentPage(1);
-                  }}
-                />
-              </div>
-
-              {/* Sidebar Panel Widgets */}
-              <div className="xl:col-span-1 space-y-5">
-                
-                {/* Safety Insights charts */}
-                <SafetyInsights drivers={drivers} />
-
-                {/* License Expiry warning alerts */}
-                <LicenseAlerts 
-                  drivers={drivers} 
-                  onViewProfile={(drv) => {
-                    setSelectedDriver(drv);
-                    setIsDrawerOpen(true);
-                  }}
-                  onRenew={handleRenewLicense}
-                />
-
-                {/* Driver rules card */}
-                <DriverBusinessRulesCard />
-              </div>
+          {/* Summary + Filters */}
+          {loading ? (
+            <div className="flex items-center justify-center h-40 gap-2 text-[#9CA3AF]">
+              <Loader2 size={22} className="animate-spin" /><span className="text-sm font-medium">Loading driver data...</span>
             </div>
+          ) : apiError ? (
+            <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-red-400 text-sm">{apiError}</div>
           ) : (
-            /* Empty State fallbacks */
-            <EmptyState 
-              onAction={handleOpenRegisterModal} 
-              title="No Drivers Found"
-              description="Verify your search queries or register a new fleet driver operator to begin scheduling assignments."
-              buttonText="Add Driver"
-              icon={Users}
-            />
-          )}
+            <>
+              <DriverSummaryCards stats={statsSummary} />
+              <DriverFilters onFilterChange={(f) => { setFilters(f); setCurrentPage(1); }}
+                onRefresh={loadDrivers} onExportPDF={() => window.print()} />
 
+              {/* Main Layout Split */}
+              {filteredDrivers.length > 0 ? (
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
+                  {/* Driver Grid Table */}
+                  <div className="xl:col-span-3 space-y-5">
+                    <DriverTable
+                      drivers={paginatedDrivers}
+                      onView={(drv) => { setSelectedDriver(drv); setIsDrawerOpen(true); }}
+                      onEdit={handleOpenEditModal}
+                      onAssignTrip={handleAssignTrip}
+                      onSuspend={handleSuspendDriver}
+                      onReactivate={handleReactivateDriver}
+                      onDelete={handleDeleteTrigger}
+                      onSort={(key, dir) => setSortConfig({ key, direction: dir })}
+                      sortConfig={sortConfig}
+                    />
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalItems={filteredDrivers.length}
+                      pageSize={pageSize}
+                      onPageChange={(page) => setCurrentPage(page)}
+                      onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+                    />
+                  </div>
+
+                  {/* Sidebar Panel Widgets */}
+                  <div className="xl:col-span-1 space-y-5">
+                    <SafetyInsights drivers={drivers} />
+                    <LicenseAlerts
+                      drivers={drivers}
+                      onViewProfile={(drv) => { setSelectedDriver(drv); setIsDrawerOpen(true); }}
+                      onRenew={handleRenewLicense}
+                    />
+                    <DriverBusinessRulesCard />
+                  </div>
+                </div>
+              ) : (
+                <EmptyState
+                  onAction={handleOpenRegisterModal}
+                  title="No Drivers Found"
+                  description="Verify your search queries or register a new fleet driver."
+                  buttonText="Add Driver"
+                  icon={Users}
+                />
+              )}
+            </>
+          )}
         </main>
+
       </div>
 
       {/* Profile details slider drawer */}

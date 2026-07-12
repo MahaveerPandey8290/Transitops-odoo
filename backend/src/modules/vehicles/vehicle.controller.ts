@@ -35,3 +35,8 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
   const vehicle = await vehicleService.updateVehicle(req.params.id, req.body);
   ok(res, vehicle, 'Vehicle updated');
 });
+
+export const remove = asyncHandler(async (req: Request, res: Response) => {
+  const result = await vehicleService.deleteVehicle(req.params.id);
+  ok(res, result, 'Vehicle deleted');
+});

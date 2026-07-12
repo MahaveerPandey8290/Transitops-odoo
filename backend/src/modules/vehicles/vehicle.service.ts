@@ -77,3 +77,20 @@ export async function updateVehicle(id: string, input: UpdateVehicleInput) {
 
   return db.vehicle.update({ where: { id }, data });
 }
+
+export async function deleteVehicle(id: string) {
+  const vehicle = await getVehicle(id); // throws 404 if not found
+
+  // Block deletion while the vehicle is actively on a trip — the dispatcher
+  // must complete or cancel the trip first before the asset can be removed.
+  if (vehicle.status === 'ON_TRIP') {
+    throw new AppError(
+      'Cannot delete a vehicle that is currently on an active trip. Complete or cancel the trip first.',
+      409,
+      'VEHICLE_ON_TRIP'
+    );
+  }
+
+  await db.vehicle.delete({ where: { id } });
+  return { id };
+}

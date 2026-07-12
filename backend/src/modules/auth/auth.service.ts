@@ -26,7 +26,7 @@ export async function register(input: RegisterInput): Promise<{ token: string; u
       email: input.email,
       passwordHash,
       name: input.name,
-      role: 'DISPATCHER', // least-privilege default; Fleet Manager promotes via /users/:id/role
+      role: input.role,
     },
     select: { id: true, email: true, name: true, role: true, createdAt: true },
   });

@@ -38,8 +38,15 @@ export default function Dashboard() {
     setTimeout(() => setActionAlert(null), 3500);
   };
 
+  const handleExportPDF = () => {
+    setActionAlert('Preparing PDF export... Opening print dialog.');
+    setTimeout(() => {
+      window.print();
+    }, 600);
+  };
+
   return (
-    <div className="min-h-screen bg-[#0F1115] text-white flex font-sans selection:bg-[#F59E0B]/20 antialiased overflow-x-hidden">
+    <div className="h-screen w-screen bg-[#0F1115] text-white flex font-sans selection:bg-[#F59E0B]/20 antialiased overflow-hidden">
       {/* 1. Left Persistent Sidebar */}
       <Sidebar 
         isOpen={sidebarOpen} 
@@ -49,7 +56,7 @@ export default function Dashboard() {
       />
 
       {/* 2. Right Viewport Section */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Navbar */}
         <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
 
@@ -71,7 +78,7 @@ export default function Dashboard() {
           <FilterBar 
             onFilterChange={(filters) => console.log('Filters modified:', filters)}
             onRefresh={() => triggerAction('Refresh Database')}
-            onExport={() => triggerAction('Export Fleet CSV')}
+            onExport={handleExportPDF}
           />
 
           {/* KPI Stat Cards Grid */}

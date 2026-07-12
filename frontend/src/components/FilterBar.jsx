@@ -103,7 +103,7 @@ export default function FilterBar({ onFilterChange, onRefresh, onExport }) {
           className="h-11 px-4 bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-md shadow-[#F59E0B]/10"
         >
           <Download size={14} />
-          <span>Export CSV</span>
+          <span>Export PDF</span>
         </button>
       </div>
     </div>

@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Sidebar({ 
   isOpen, 
@@ -22,15 +22,17 @@ export default function Sidebar({
   onToggleCollapse 
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, active: true },
-    { name: 'Fleet', icon: Truck },
-    { name: 'Drivers', icon: Users },
-    { name: 'Trips', icon: Route },
-    { name: 'Maintenance', icon: Wrench },
-    { name: 'Fuel & Expenses', icon: Fuel },
-    { name: 'Analytics', icon: BarChart3 },
-    { name: 'Settings', icon: Settings },
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    { name: 'Fleet', icon: Truck, path: '/fleet' },
+    { name: 'Drivers', icon: Users, path: '/drivers' },
+    { name: 'Trips', icon: Route, path: '/trips' },
+    { name: 'Maintenance', icon: Wrench, path: '/maintenance' },
+    { name: 'Fuel & Expenses', icon: Fuel, path: '/fuel' },
+    { name: 'Analytics', icon: BarChart3, path: '/analytics' },
+    { name: 'Settings', icon: Settings, path: '/settings' },
   ];
 
   const handleLogout = () => {
@@ -96,24 +98,40 @@ export default function Sidebar({
         <nav className="flex-1 py-6 px-3 overflow-y-auto space-y-1 scrollbar-thin">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            const handleClick = () => {
+              if (
+                item.path === '/dashboard' || 
+                item.path === '/fleet' || 
+                item.path === '/drivers' ||
+                item.path === '/settings'
+              ) {
+                navigate(item.path);
+              } else {
+                alert(`Operational Module "${item.name}" is scheduled for next iteration.`);
+              }
+              if (isOpen && onClose) onClose();
+            };
+
             return (
               <button
                 key={item.name}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative ${
-                  item.active 
+                onClick={handleClick}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative cursor-pointer ${
+                  isActive 
                     ? 'bg-[#F59E0B] text-white font-bold shadow-md shadow-[#F59E0B]/15' 
                     : 'text-[#9CA3AF] hover:text-white hover:bg-[#171A21]'
                 }`}
               >
                 {/* Left Active indicator bar */}
-                {item.active && (
+                {isActive && (
                   <div className="absolute left-0 top-1/3 bottom-1/3 w-1 bg-white rounded-r-full" />
                 )}
 
                 <Icon 
                   size={20} 
                   className={`flex-shrink-0 transition-transform group-hover:scale-105 duration-200 ${
-                    item.active ? 'text-white' : 'text-[#9CA3AF] group-hover:text-white'
+                    isActive ? 'text-white' : 'text-[#9CA3AF] group-hover:text-white'
                   }`} 
                 />
 

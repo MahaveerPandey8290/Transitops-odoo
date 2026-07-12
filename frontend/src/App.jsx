@@ -3,10 +3,12 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate
+  Navigate,
+  useLocation,
 } from "react-router-dom";
 
-import { isAuthenticated } from "./api/client";
+import { isAuthenticated, getStoredUser } from "./api/client";
+import { ROLE_ROUTES } from "./components/Sidebar";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -19,34 +21,57 @@ import Maintenance from "./pages/Maintenance";
 import FuelManagement from "./pages/FuelManagement";
 import Analytics from "./pages/Analytics";
 
-// Guards any route behind a valid JWT in localStorage
-function PrivateRoute({ element }) {
-  return isAuthenticated() ? element : <Navigate to="/login" replace />;
+// ── PrivateRoute ──────────────────────────────────────────────────────────────
+// 1. Not logged in → redirect to /login
+// 2. Logged in but role can't access this path → redirect to /dashboard
+// This mirrors the sidebar filter so nav and routes agree.
+function PrivateRoute({ path: routePath, element }) {
+  const location = useLocation();
+
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  const user = getStoredUser();
+  const allowedPaths = ROLE_ROUTES[user?.role] ?? ROLE_ROUTES['DISPATCHER'];
+
+  if (!allowedPaths.includes(routePath)) {
+    // Role can't visit this route — send them to dashboard (which every role can see)
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return element;
 }
 
-function App() {
+export default function App() {
   return (
     <Router>
       <Routes>
-        {/* Authentication — accessible without a token */}
+        {/* Public — no token required */}
         <Route path="/login"  element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected routes */}
-        <Route path="/dashboard"       element={<PrivateRoute element={<Dashboard />} />} />
-        <Route path="/fleet"           element={<PrivateRoute element={<VehicleRegistry />} />} />
-        <Route path="/drivers"         element={<PrivateRoute element={<Drivers />} />} />
-        <Route path="/trip-dispatcher" element={<PrivateRoute element={<TripDispatcher />} />} />
-        <Route path="/maintenance"     element={<PrivateRoute element={<Maintenance />} />} />
-        <Route path="/fuel-management" element={<PrivateRoute element={<FuelManagement />} />} />
-        <Route path="/analytics"       element={<PrivateRoute element={<Analytics />} />} />
-        <Route path="/settings"        element={<PrivateRoute element={<Settings />} />} />
+        {/* Protected — role-checked */}
+        <Route path="/dashboard"
+          element={<PrivateRoute path="/dashboard" element={<Dashboard />} />} />
+        <Route path="/fleet"
+          element={<PrivateRoute path="/fleet" element={<VehicleRegistry />} />} />
+        <Route path="/drivers"
+          element={<PrivateRoute path="/drivers" element={<Drivers />} />} />
+        <Route path="/trip-dispatcher"
+          element={<PrivateRoute path="/trip-dispatcher" element={<TripDispatcher />} />} />
+        <Route path="/maintenance"
+          element={<PrivateRoute path="/maintenance" element={<Maintenance />} />} />
+        <Route path="/fuel-management"
+          element={<PrivateRoute path="/fuel-management" element={<FuelManagement />} />} />
+        <Route path="/analytics"
+          element={<PrivateRoute path="/analytics" element={<Analytics />} />} />
+        <Route path="/settings"
+          element={<PrivateRoute path="/settings" element={<Settings />} />} />
 
-        {/* Default */}
+        {/* Catch-all → login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;

@@ -4,7 +4,7 @@ export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   name: z.string().min(1).max(100),
-  role: z.enum(['FLEET_MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCIAL_ANALYST']).default('DISPATCHER'),
+  // role is intentionally absent — the server decides it, never the client
 });
 
 export const loginSchema = z.object({

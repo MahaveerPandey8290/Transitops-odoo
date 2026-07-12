@@ -10,7 +10,6 @@ export default function SignupForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: '',
     password: '',
     confirmPassword: '',
   });
@@ -44,7 +43,6 @@ export default function SignupForm() {
     if (!formData.name.trim()) tempErrors.name = 'Full name is required';
     if (!formData.email) tempErrors.email = 'Email address is required';
     else if (!emailRegex.test(formData.email)) tempErrors.email = 'Please enter a valid email address';
-    if (!formData.role) tempErrors.role = 'Please select your role';
     if (!formData.password) {
       tempErrors.password = 'Password is required';
     } else {
@@ -63,7 +61,7 @@ export default function SignupForm() {
     setIsLoading(true);
     setApiError('');
     try {
-      const res = await authApi.register(formData.name, formData.email, formData.password, formData.role);
+      const res = await authApi.register(formData.name, formData.email, formData.password);
       storeAuth(res.data.token, res.data.user);
       setIsSuccess(true);
       setTimeout(() => navigate('/dashboard'), 800);
@@ -150,35 +148,10 @@ export default function SignupForm() {
           {errors.email && <p className="text-[10px] text-red-500 font-semibold mt-1">{errors.email}</p>}
         </div>
 
-        {/* Role Dropdown */}
-        <div className="space-y-1.5 text-left">
-          <label htmlFor="role" className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-            Role *
-          </label>
-          <div className="relative">
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={isLoading}
-              className={`w-full h-[52px] pl-4 pr-10 bg-white border appearance-none ${
-                errors.role ? 'border-red-300 focus:ring-red-100' : 'border-[#E2E8F0] focus:border-[#F59E0B] focus:ring-[#F59E0B]/10'
-              } rounded-[14px] text-sm text-[#0F172A] font-medium outline-none focus:ring-4 transition-all duration-200 cursor-pointer disabled:opacity-60`}
-            >
-              <option value="">Select your role...</option>
-              <option value="FLEET_MANAGER">Fleet Manager</option>
-              <option value="DISPATCHER">Dispatcher</option>
-              <option value="SAFETY_OFFICER">Safety Officer</option>
-              <option value="FINANCIAL_ANALYST">Financial Analyst</option>
-            </select>
-            {/* Chevron icon */}
-            <div className="pointer-events-none absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-          {errors.role && <p className="text-[10px] text-red-500 font-semibold mt-1">{errors.role}</p>}
-        </div>
+        {/* Helper note — role is system-decided, not user-chosen */}
+        <p className="text-[11px] text-slate-400 font-medium text-left leading-relaxed">
+          New accounts start as Dispatcher. Your Fleet Manager can update your role in Settings.
+        </p>
 
         {/* Password Field */}
         <div className="space-y-1.5 text-left">

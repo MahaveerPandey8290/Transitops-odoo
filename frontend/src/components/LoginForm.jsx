@@ -123,10 +123,7 @@ export default function LoginForm() {
           {errors.password && <p className="text-xs text-red-500 font-medium mt-1">{errors.password}</p>}
         </div>
 
-        {/* Hint for demo */}
-        <p className="text-[11px] text-slate-400 font-medium text-left">
-          Demo accounts: fleet@transitsops.dev / dispatch@transitsops.dev / safety@transitsops.dev / finance@transitsops.dev — all passwords: &lt;Role&gt;@2026!
-        </p>
+
 
         {/* Submit */}
         <div className="pt-2">

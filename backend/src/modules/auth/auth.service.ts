@@ -20,13 +20,19 @@ export async function register(input: RegisterInput): Promise<{ token: string; u
     throw new AppError('Email already registered', 409, 'EMAIL_TAKEN');
   }
 
+  // First user on an empty system becomes the Fleet Manager (bootstrap admin).
+  // Every subsequent user is DISPATCHER — promoted later by the Fleet Manager.
+  // The role sent in the request body is ALWAYS ignored for security.
+  const userCount = await db.user.count();
+  const assignedRole = userCount === 0 ? 'FLEET_MANAGER' : 'DISPATCHER';
+
   const passwordHash = await bcrypt.hash(input.password, 12);
   const user = await db.user.create({
     data: {
       email: input.email,
       passwordHash,
       name: input.name,
-      role: input.role,
+      role: assignedRole,
     },
     select: { id: true, email: true, name: true, role: true, createdAt: true },
   });

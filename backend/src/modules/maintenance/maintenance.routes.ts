@@ -8,15 +8,21 @@ import * as maintenanceController from './maintenance.controller';
 const router = Router();
 router.use(authenticate);
 
-router.get('/', validateQuery(maintenanceQuerySchema), maintenanceController.list);
-router.post(
-  '/',
+// ── Maintenance / Compliance module ───────────────────────────────────────────
+// VIEW  → all four roles (every role can see the compliance log)
+// WRITE → FLEET_MANAGER, SAFETY_OFFICER (unchanged — was already correct)
+
+router.get('/',
+  requireRole(['FLEET_MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCIAL_ANALYST']),
+  validateQuery(maintenanceQuerySchema),
+  maintenanceController.list
+);
+router.post('/',
   requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER']),
   validate(createMaintenanceSchema),
   maintenanceController.create
 );
-router.patch(
-  '/:id/close',
+router.patch('/:id/close',
   requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER']),
   maintenanceController.close
 );

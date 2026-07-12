@@ -8,20 +8,33 @@ import * as vehicleController from './vehicle.controller';
 const router = Router();
 router.use(authenticate);
 
-// /available must be declared before /:id so Express doesn't treat "available" as an id
-router.get('/available', vehicleController.available);
+// ── Vehicles (Fleet module) ────────────────────────────────────────────────────
+// VIEW  → FLEET_MANAGER, DISPATCHER, FINANCIAL_ANALYST
+//         Safety Officer: grid shows "—" = no fleet access
+// WRITE → FLEET_MANAGER only
 
-router.get('/', validateQuery(vehicleQuerySchema), vehicleController.list);
-router.get('/:id', vehicleController.getOne);
+// /available before /:id so Express does not treat "available" as an id param
+router.get('/available',
+  requireRole(['FLEET_MANAGER', 'DISPATCHER', 'FINANCIAL_ANALYST']),
+  vehicleController.available
+);
 
-router.post(
-  '/',
+router.get('/',
+  requireRole(['FLEET_MANAGER', 'DISPATCHER', 'FINANCIAL_ANALYST']),
+  validateQuery(vehicleQuerySchema),
+  vehicleController.list
+);
+router.get('/:id',
+  requireRole(['FLEET_MANAGER', 'DISPATCHER', 'FINANCIAL_ANALYST']),
+  vehicleController.getOne
+);
+
+router.post('/',
   requireRole(['FLEET_MANAGER']),
   validate(createVehicleSchema),
   vehicleController.create
 );
-router.patch(
-  '/:id',
+router.patch('/:id',
   requireRole(['FLEET_MANAGER']),
   validate(updateVehicleSchema),
   vehicleController.update

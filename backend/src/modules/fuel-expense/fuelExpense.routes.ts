@@ -13,18 +13,31 @@ import * as fuelExpenseController from './fuelExpense.controller';
 const router = Router();
 router.use(authenticate);
 
-router.get('/fuel-logs', validateQuery(fuelLogQuerySchema), fuelExpenseController.listFuelLogs);
-router.post(
-  '/fuel-logs',
-  requireRole(['FLEET_MANAGER', 'DISPATCHER', 'FINANCIAL_ANALYST']),
+// ── Fuel & Expenses module ─────────────────────────────────────────────────────
+// VIEW  → FLEET_MANAGER, FINANCIAL_ANALYST
+//         Dispatcher: removed (grid shows "—")
+// WRITE → FINANCIAL_ANALYST only
+//         Fleet Manager: grid shows "—" for Fuel/Exp column
+//         Dispatcher: removed (grid shows "—")
+
+router.get('/fuel-logs',
+  requireRole(['FLEET_MANAGER', 'FINANCIAL_ANALYST']),
+  validateQuery(fuelLogQuerySchema),
+  fuelExpenseController.listFuelLogs
+);
+router.post('/fuel-logs',
+  requireRole(['FINANCIAL_ANALYST']),
   validate(createFuelLogSchema),
   fuelExpenseController.createFuelLog
 );
 
-router.get('/expenses', validateQuery(expenseQuerySchema), fuelExpenseController.listExpenses);
-router.post(
-  '/expenses',
+router.get('/expenses',
   requireRole(['FLEET_MANAGER', 'FINANCIAL_ANALYST']),
+  validateQuery(expenseQuerySchema),
+  fuelExpenseController.listExpenses
+);
+router.post('/expenses',
+  requireRole(['FINANCIAL_ANALYST']),
   validate(createExpenseSchema),
   fuelExpenseController.createExpense
 );

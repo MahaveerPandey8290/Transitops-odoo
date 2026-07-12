@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MoreVertical, Eye, Edit2, Wrench, History, Trash2, ArrowUpDown } from 'lucide-react';
 import StatusBadge from './StatusBadge';
+import { getStoredUser } from '../api/client';
 
 export default function VehicleTable({ 
   vehicles, 
@@ -13,6 +14,9 @@ export default function VehicleTable({
 }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const menuRef = useRef(null);
+  const user = getStoredUser();
+  const isFleetManager = user?.role === 'FLEET_MANAGER';
+  const isSafetyOfficer = user?.role === 'SAFETY_OFFICER';
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -149,21 +153,25 @@ export default function VehicleTable({
                         <span>View Details</span>
                       </button>
 
-                      <button
-                        onClick={(e) => handleAction(onEdit, vh, e)}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-white hover:bg-[#0F1115] hover:text-[#22C55E] transition-all cursor-pointer"
-                      >
-                        <Edit2 size={14} className="text-[#22C55E]" />
-                        <span>Edit Vehicle</span>
-                      </button>
+                      {isFleetManager && (
+                        <button
+                          onClick={(e) => handleAction(onEdit, vh, e)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-white hover:bg-[#0F1115] hover:text-[#22C55E] transition-all cursor-pointer"
+                        >
+                          <Edit2 size={14} className="text-[#22C55E]" />
+                          <span>Edit Vehicle</span>
+                        </button>
+                      )}
 
-                      <button
-                        onClick={(e) => handleAction(onMaintenance, vh, e)}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-white hover:bg-[#0F1115] hover:text-[#F59E0B] transition-all cursor-pointer"
-                      >
-                        <Wrench size={14} className="text-[#F59E0B]" />
-                        <span>Schedule Maintenance</span>
-                      </button>
+                      {(isFleetManager || isSafetyOfficer) && (
+                        <button
+                          onClick={(e) => handleAction(onMaintenance, vh, e)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-white hover:bg-[#0F1115] hover:text-[#F59E0B] transition-all cursor-pointer"
+                        >
+                          <Wrench size={14} className="text-[#F59E0B]" />
+                          <span>Schedule Maintenance</span>
+                        </button>
+                      )}
 
                       <button
                         onClick={(e) => handleAction(() => console.log('View history:', vh.id), vh, e)}
@@ -173,15 +181,18 @@ export default function VehicleTable({
                         <span>View Trip History</span>
                       </button>
 
-                      <div className="h-px bg-[#2B3038] my-1" />
-
-                      <button
-                        onClick={(e) => handleAction(onDelete, vh, e)}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#EF4444] hover:bg-red-500/10 transition-all cursor-pointer"
-                      >
-                        <Trash2 size={14} />
-                        <span>Delete Vehicle</span>
-                      </button>
+                      {isFleetManager && (
+                        <>
+                          <div className="h-px bg-[#2B3038] my-1" />
+                          <button
+                            onClick={(e) => handleAction(onDelete, vh, e)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#EF4444] hover:bg-red-500/10 transition-all cursor-pointer"
+                          >
+                            <Trash2 size={14} />
+                            <span>Delete Vehicle</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </td>

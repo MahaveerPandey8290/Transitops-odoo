@@ -9,11 +9,13 @@ const router = Router();
 router.use(authenticate);
 
 // ── Maintenance / Compliance module ───────────────────────────────────────────
-// VIEW  → all four roles (every role can see the compliance log)
-// WRITE → FLEET_MANAGER, SAFETY_OFFICER (unchanged — was already correct)
+// VIEW  → FLEET_MANAGER, SAFETY_OFFICER
+//         Dispatcher: no Maintenance screen (only Dashboard, Fleet-view, Trips)
+//         Financial Analyst: no Maintenance screen (only Dashboard, Fleet-view, Fuel, Analytics)
+// WRITE → FLEET_MANAGER, SAFETY_OFFICER
 
 router.get('/',
-  requireRole(['FLEET_MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCIAL_ANALYST']),
+  requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER']),
   validateQuery(maintenanceQuerySchema),
   maintenanceController.list
 );

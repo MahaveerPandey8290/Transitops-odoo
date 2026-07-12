@@ -15,7 +15,8 @@ export default function TripDispatcher() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const user = getStoredUser();
-  const canWrite = user?.role === 'DISPATCHER';
+  // Fleet Manager has full trip access; Dispatcher runs day-to-day ops; Safety Officer view-only
+  const canWrite = user?.role === 'FLEET_MANAGER' || user?.role === 'DISPATCHER';
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const [trips, setTrips] = useState([]);
@@ -145,7 +146,7 @@ export default function TripDispatcher() {
             <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Trip Dispatcher</h1>
             <p className="text-sm text-[#9CA3AF] mt-1.5 font-medium">
               Create, dispatch, and manage trips in real-time.
-              {!canWrite && <span className="ml-2 text-amber-400 font-semibold">⚠ View-only — Dispatcher role required to create trips.</span>}
+              {!canWrite && <span className="ml-2 text-amber-400 font-semibold">⚠ View-only — no write access for your role.</span>}
             </p>
           </div>
 

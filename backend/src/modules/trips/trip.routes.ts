@@ -16,31 +16,31 @@ router.use(authenticate);
 //         Fleet Manager: grid shows "—" = removed from write array
 
 router.get('/',
-  requireRole(['DISPATCHER', 'SAFETY_OFFICER']),
+  requireRole(['FLEET_MANAGER', 'DISPATCHER', 'SAFETY_OFFICER']),
   validateQuery(tripQuerySchema),
   tripController.list
 );
 router.get('/:id',
-  requireRole(['DISPATCHER', 'SAFETY_OFFICER']),
+  requireRole(['FLEET_MANAGER', 'DISPATCHER', 'SAFETY_OFFICER']),
   tripController.getOne
 );
 
 router.post('/',
-  requireRole(['DISPATCHER']),
+  requireRole(['FLEET_MANAGER', 'DISPATCHER']),
   validate(createTripSchema),
   tripController.create
 );
 router.post('/:id/dispatch',
-  requireRole(['DISPATCHER']),
+  requireRole(['FLEET_MANAGER', 'DISPATCHER']),
   tripController.dispatch
 );
 router.post('/:id/complete',
-  requireRole(['DISPATCHER']),
+  requireRole(['FLEET_MANAGER', 'DISPATCHER']),
   validate(completeTripSchema),
   tripController.complete
 );
 router.post('/:id/cancel',
-  requireRole(['DISPATCHER']),
+  requireRole(['FLEET_MANAGER', 'DISPATCHER']),
   tripController.cancel
 );
 

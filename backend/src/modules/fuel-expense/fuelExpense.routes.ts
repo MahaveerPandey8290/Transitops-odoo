@@ -26,7 +26,7 @@ router.get('/fuel-logs',
   fuelExpenseController.listFuelLogs
 );
 router.post('/fuel-logs',
-  requireRole(['FINANCIAL_ANALYST']),
+  requireRole(['FLEET_MANAGER', 'FINANCIAL_ANALYST']),
   validate(createFuelLogSchema),
   fuelExpenseController.createFuelLog
 );
@@ -37,7 +37,7 @@ router.get('/expenses',
   fuelExpenseController.listExpenses
 );
 router.post('/expenses',
-  requireRole(['FINANCIAL_ANALYST']),
+  requireRole(['FLEET_MANAGER', 'FINANCIAL_ANALYST']),
   validate(createExpenseSchema),
   fuelExpenseController.createExpense
 );

@@ -16,17 +16,17 @@ router.use(authenticate);
 
 // /available before /:id to avoid route shadowing
 router.get('/available',
-  requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER']),
+  requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER', 'DISPATCHER']),
   driverController.available
 );
 
 router.get('/',
-  requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER']),
+  requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER', 'DISPATCHER']),
   validateQuery(driverQuerySchema),
   driverController.list
 );
 router.get('/:id',
-  requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER']),
+  requireRole(['FLEET_MANAGER', 'SAFETY_OFFICER', 'DISPATCHER']),
   driverController.getOne
 );
 

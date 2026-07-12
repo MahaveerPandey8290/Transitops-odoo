@@ -10,7 +10,7 @@ export default function FuelManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const user = getStoredUser();
-  const canWrite = user?.role === 'FINANCIAL_ANALYST';
+  const canWrite = user?.role === 'FINANCIAL_ANALYST' || user?.role === 'FLEET_MANAGER';
 
   const [fuelLogs, setFuelLogs] = useState([]);
   const [expenses, setExpenses] = useState([]);

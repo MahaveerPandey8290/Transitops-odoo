@@ -17,7 +17,7 @@ export const available = asyncHandler(async (_req: Request, res: Response) => {
 });
 
 export const getOne = asyncHandler(async (req: Request, res: Response) => {
-  const driver = await driverService.getDriver(req.params.id);
+  const driver = await driverService.getDriver(req.params.id as string);
   ok(res, driver);
 });
 
@@ -27,6 +27,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const update = asyncHandler(async (req: Request, res: Response) => {
-  const driver = await driverService.updateDriver(req.params.id, req.body);
+  const driver = await driverService.updateDriver(req.params.id as string, req.body);
   ok(res, driver, 'Driver updated');
 });

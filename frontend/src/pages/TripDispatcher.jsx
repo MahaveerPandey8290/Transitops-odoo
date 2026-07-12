@@ -26,6 +26,11 @@ export default function TripDispatcher() {
   const [actionLoading, setActionLoading] = useState(null); // tripId being acted on
   const [toast, setToast] = useState(null);
 
+  // Trip Completion Modal State
+  const [completingTripId, setCompletingTripId] = useState(null);
+  const [completionForm, setCompletionForm] = useState({ finalOdometerKm: '', fuelLiters: '', pricePerLiter: '' });
+  const [completionErrors, setCompletionErrors] = useState({});
+
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
 
   const loadTrips = useCallback(async () => {
@@ -109,14 +114,62 @@ export default function TripDispatcher() {
     finally { setActionLoading(null); }
   };
 
-  const handleComplete = async (tripId) => {
-    setActionLoading(tripId);
+  const handleComplete = (tripId) => {
+    const tripToComplete = trips.find(t => t.id === tripId);
+    // Pre-populate with current vehicle odometer as starting point if available
+    const startingOdo = tripToComplete?.vehicle?.currentOdometerKm ?? '';
+    setCompletionForm({
+      finalOdometerKm: startingOdo ? String(Number(startingOdo)) : '',
+      fuelLiters: '',
+      pricePerLiter: '100' // reasonable default per-liter price
+    });
+    setCompletionErrors({});
+    setCompletingTripId(tripId);
+  };
+
+  const submitCompleteTrip = async () => {
+    // Validate completion inputs
+    const errs = {};
+    const finalOdoNum = Number(completionForm.finalOdometerKm);
+    const fuelLitersNum = Number(completionForm.fuelLiters);
+    const priceNum = Number(completionForm.pricePerLiter);
+
+    const tripToComplete = trips.find(t => t.id === completingTripId);
+    const startOdo = tripToComplete ? Number(tripToComplete.startOdometerKm ?? 0) : 0;
+
+    if (!completionForm.finalOdometerKm || isNaN(finalOdoNum) || finalOdoNum <= 0) {
+      errs.finalOdometerKm = 'Enter a valid positive odometer reading';
+    } else if (finalOdoNum <= startOdo) {
+      errs.finalOdometerKm = `Odometer must be greater than start odometer (${startOdo} km)`;
+    }
+
+    if (!completionForm.fuelLiters || isNaN(fuelLitersNum) || fuelLitersNum <= 0) {
+      errs.fuelLiters = 'Enter valid fuel liters consumed';
+    }
+    if (!completionForm.pricePerLiter || isNaN(priceNum) || priceNum <= 0) {
+      errs.pricePerLiter = 'Enter valid fuel price per liter';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setCompletionErrors(errs);
+      return;
+    }
+
+    setActionLoading(completingTripId);
     try {
-      // Complete requires odometer and fuel data — we use minimal defaults for quick demo
-      await tripApi.complete(tripId, { actualDistanceKm: 0, fuelUsedLiters: 0 });
-      await loadTrips(); showToast('Trip completed!');
-    } catch (err) { showToast(`Error: ${err.message}`); }
-    finally { setActionLoading(null); }
+      await tripApi.complete(completingTripId, {
+        finalOdometerKm: finalOdoNum,
+        fuelLiters: fuelLitersNum,
+        pricePerLiter: priceNum
+      });
+      setCompletingTripId(null);
+      await loadTrips();
+      showToast('Trip completed successfully!');
+    } catch (err) {
+      showToast(`Error: ${err.message}`);
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleCancel = async (tripId) => {
@@ -324,6 +377,79 @@ export default function TripDispatcher() {
           </div>
         </main>
       </div>
+
+      {/* Trip Completion Modal */}
+      {completingTripId && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setCompletingTripId(null)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-[#15181E] border border-[#2B3038] rounded-2xl p-6 max-w-md w-full text-left shadow-2xl space-y-4">
+              <div>
+                <h3 className="text-base font-bold text-white">Complete Dispatched Trip</h3>
+                <p className="text-xs text-[#9CA3AF] mt-1 font-semibold">
+                  Enter final trip metrics to release the vehicle and driver back to Available.
+                </p>
+              </div>
+
+              <div className="space-y-3.5">
+                {/* Final Odometer */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">Final Odometer (km) *</label>
+                  <input
+                    type="number"
+                    value={completionForm.finalOdometerKm}
+                    onChange={(e) => setCompletionForm(p => ({ ...p, finalOdometerKm: e.target.value }))}
+                    placeholder="e.g. 10500"
+                    className="w-full h-11 px-4 border border-[#2B3038] bg-[#0F1115] text-white rounded-lg text-xs font-semibold outline-none focus:border-[#F59E0B] transition-colors"
+                  />
+                  {completionErrors.finalOdometerKm && <p className="text-[10px] text-red-400 font-medium">{completionErrors.finalOdometerKm}</p>}
+                </div>
+
+                {/* Fuel Consumed */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">Fuel Consumed (Liters) *</label>
+                  <input
+                    type="number"
+                    value={completionForm.fuelLiters}
+                    onChange={(e) => setCompletionForm(p => ({ ...p, fuelLiters: e.target.value }))}
+                    placeholder="e.g. 45"
+                    className="w-full h-11 px-4 border border-[#2B3038] bg-[#0F1115] text-white rounded-lg text-xs font-semibold outline-none focus:border-[#F59E0B] transition-colors"
+                  />
+                  {completionErrors.fuelLiters && <p className="text-[10px] text-red-400 font-medium">{completionErrors.fuelLiters}</p>}
+                </div>
+
+                {/* Fuel Price Per Liter */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">Fuel Price Per Liter (₹) *</label>
+                  <input
+                    type="number"
+                    value={completionForm.pricePerLiter}
+                    onChange={(e) => setCompletionForm(p => ({ ...p, pricePerLiter: e.target.value }))}
+                    placeholder="e.g. 96.5"
+                    className="w-full h-11 px-4 border border-[#2B3038] bg-[#0F1115] text-white rounded-lg text-xs font-semibold outline-none focus:border-[#F59E0B] transition-colors"
+                  />
+                  {completionErrors.pricePerLiter && <p className="text-[10px] text-red-400 font-medium">{completionErrors.pricePerLiter}</p>}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2 text-xs font-bold">
+                <button
+                  onClick={() => setCompletingTripId(null)}
+                  className="px-4 py-2 border border-[#2B3038] bg-[#0F1115] text-[#9CA3AF] hover:text-white rounded-lg cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitCompleteTrip}
+                  className="px-5 py-2 bg-[#22C55E] hover:bg-[#1E9E4B] text-white rounded-lg flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-500/10"
+                >
+                  <span>Complete Trip</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

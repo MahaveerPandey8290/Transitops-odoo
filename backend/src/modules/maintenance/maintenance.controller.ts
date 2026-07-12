@@ -17,6 +17,6 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const close = asyncHandler(async (req: Request, res: Response) => {
-  const log = await maintenanceService.closeMaintenanceLog(req.params.id);
+  const log = await maintenanceService.closeMaintenanceLog(req.params.id as string);
   ok(res, log, 'Maintenance log closed');
 });

@@ -12,7 +12,7 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getOne = asyncHandler(async (req: Request, res: Response) => {
-  const trip = await tripService.getTrip(req.params.id);
+  const trip = await tripService.getTrip(req.params.id as string);
   ok(res, trip);
 });
 
@@ -22,16 +22,16 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const dispatch = asyncHandler(async (req: Request, res: Response) => {
-  const trip = await tripService.dispatchTrip(req.params.id);
+  const trip = await tripService.dispatchTrip(req.params.id as string);
   ok(res, trip, 'Trip dispatched');
 });
 
 export const complete = asyncHandler(async (req: Request, res: Response) => {
-  const trip = await tripService.completeTrip(req.params.id, req.body);
+  const trip = await tripService.completeTrip(req.params.id as string, req.body);
   ok(res, trip, 'Trip completed');
 });
 
 export const cancel = asyncHandler(async (req: Request, res: Response) => {
-  const trip = await tripService.cancelTrip(req.params.id);
+  const trip = await tripService.cancelTrip(req.params.id as string);
   ok(res, trip, 'Trip cancelled');
 });

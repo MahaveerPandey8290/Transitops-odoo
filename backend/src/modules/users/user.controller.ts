@@ -12,6 +12,6 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateRole = asyncHandler(async (req: Request, res: Response) => {
-  const user = await userService.updateUserRole(req.params.id, req.user!.userId, req.body);
+  const user = await userService.updateUserRole(req.params.id as string, req.user!.userId, req.body);
   ok(res, user, 'User role updated');
 });

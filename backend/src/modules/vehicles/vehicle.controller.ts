@@ -22,7 +22,7 @@ export const available = asyncHandler(async (_req: Request, res: Response) => {
 });
 
 export const getOne = asyncHandler(async (req: Request, res: Response) => {
-  const vehicle = await vehicleService.getVehicle(req.params.id);
+  const vehicle = await vehicleService.getVehicle(req.params.id as string);
   ok(res, vehicle);
 });
 
@@ -32,11 +32,11 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const update = asyncHandler(async (req: Request, res: Response) => {
-  const vehicle = await vehicleService.updateVehicle(req.params.id, req.body);
+  const vehicle = await vehicleService.updateVehicle(req.params.id as string, req.body);
   ok(res, vehicle, 'Vehicle updated');
 });
 
 export const remove = asyncHandler(async (req: Request, res: Response) => {
-  const result = await vehicleService.deleteVehicle(req.params.id);
+  const result = await vehicleService.deleteVehicle(req.params.id as string);
   ok(res, result, 'Vehicle deleted');
 });

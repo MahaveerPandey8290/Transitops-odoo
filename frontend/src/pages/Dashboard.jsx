@@ -9,30 +9,37 @@ import RecentTripsTable from '../components/RecentTripsTable';
 import VehicleStatusCard from '../components/VehicleStatusCard';
 import QuickActions from '../components/QuickActions';
 import ActivityTimeline, { TodayDispatches, MaintenanceAlerts } from '../components/ActivityTimeline';
-import AnalyticsCharts from '../components/AnalyticsCharts';
 import { Truck, CheckCircle, Wrench, Users, Clock, Gauge, Loader2 } from 'lucide-react';
-import { reportsApi, tripApi } from '../api/client';
+import { reportsApi, tripApi, vehicleApi, maintenanceApi } from '../api/client';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [actionAlert, setActionAlert] = useState(null);
+
+  // Live data state
   const [kpiData, setKpiData] = useState(null);
   const [recentTrips, setRecentTrips] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [maintenanceLogs, setMaintenanceLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch KPIs and recent active trips on mount
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const [kpiRes, tripsRes] = await Promise.all([
+        // All four feeds in parallel — dashboard is the one page that needs the full picture
+        const [kpiRes, tripsRes, vehiclesRes, maintRes] = await Promise.all([
           reportsApi.kpis(),
-          tripApi.list({ status: 'DISPATCHED', limit: 5 }),
+          tripApi.list({ limit: 20 }),         // recent trips for table
+          vehicleApi.list({ limit: 200 }),      // all vehicles for status card
+          maintenanceApi.list({ limit: 50 }),   // open logs for alerts
         ]);
         setKpiData(kpiRes.data);
         setRecentTrips(tripsRes.data?.trips ?? []);
+        setVehicles(vehiclesRes.data?.vehicles ?? []);
+        setMaintenanceLogs(maintRes.data?.logs ?? []);
       } catch (err) {
         console.error('Dashboard load error:', err.message);
       } finally {
@@ -43,19 +50,24 @@ export default function Dashboard() {
   }, []);
 
   // Build KPI card definitions from live data
-  const kpis = kpiData
-    ? [
-        { title: 'Total Vehicles', value: String(kpiData.vehicles.active), trend: 'Fleet', trendType: 'neutral', icon: Truck, iconBg: 'bg-[#3B82F6]/10 text-[#3B82F6]' },
-        { title: 'Available Vehicles', value: String(kpiData.vehicles.available), trend: 'Ready', trendType: 'neutral', icon: CheckCircle, iconBg: 'bg-[#22C55E]/10 text-[#22C55E]' },
-        { title: 'In Maintenance', value: String(kpiData.vehicles.inMaintenance), trend: 'In Shop', trendType: 'down', icon: Wrench, iconBg: 'bg-[#F59E0B]/10 text-[#F59E0B]' },
-        { title: 'Drivers On Duty', value: String(kpiData.drivers.onDuty), trend: 'Active', trendType: 'neutral', icon: Users, iconBg: 'bg-indigo-500/10 text-indigo-400' },
-        { title: 'Active Trips', value: String(kpiData.trips.active), trend: 'Dispatched', trendType: 'neutral', icon: Clock, iconBg: 'bg-amber-500/10 text-amber-400' },
-        { title: 'Fleet Utilization', value: `${kpiData.fleetUtilizationPct}%`, trend: kpiData.fleetUtilizationPct > 70 ? 'Optimal' : 'Low', trendType: kpiData.fleetUtilizationPct > 70 ? 'up' : 'neutral', icon: Gauge, iconBg: 'bg-[#F59E0B]/10 text-[#F59E0B]' },
-      ]
-    : [];
+  const kpis = kpiData ? [
+    { title: 'Total Vehicles',    value: String(kpiData.vehicles.active),          trend: 'Fleet',       trendType: 'neutral', icon: Truck,        iconBg: 'bg-[#3B82F6]/10 text-[#3B82F6]' },
+    { title: 'Available Vehicles',value: String(kpiData.vehicles.available),        trend: 'Ready',       trendType: 'up',      icon: CheckCircle,  iconBg: 'bg-[#22C55E]/10 text-[#22C55E]' },
+    { title: 'In Maintenance',    value: String(kpiData.vehicles.inMaintenance),    trend: 'In Shop',     trendType: 'down',    icon: Wrench,       iconBg: 'bg-[#F59E0B]/10 text-[#F59E0B]' },
+    { title: 'Drivers On Duty',   value: String(kpiData.drivers.onDuty),            trend: 'Active',      trendType: 'neutral', icon: Users,        iconBg: 'bg-indigo-500/10 text-indigo-400' },
+    { title: 'Active Trips',      value: String(kpiData.trips.active),              trend: 'Dispatched',  trendType: 'neutral', icon: Clock,        iconBg: 'bg-amber-500/10 text-amber-400' },
+    {
+      title: 'Fleet Utilization',
+      value: `${kpiData.fleetUtilizationPct}%`,
+      trend: kpiData.fleetUtilizationPct > 70 ? 'Optimal' : 'Low',
+      trendType: kpiData.fleetUtilizationPct > 70 ? 'up' : 'neutral',
+      icon: Gauge,
+      iconBg: 'bg-[#F59E0B]/10 text-[#F59E0B]',
+    },
+  ] : [];
 
-  const triggerAction = (actionName) => {
-    setActionAlert(`Action Triggered: "${actionName}"`);
+  const triggerAction = (label) => {
+    setActionAlert(`Action Triggered: "${label}"`);
     setTimeout(() => setActionAlert(null), 3500);
   };
 
@@ -84,7 +96,7 @@ export default function Dashboard() {
 
           <FilterBar
             onFilterChange={(f) => console.log('Filters:', f)}
-            onRefresh={() => triggerAction('Refresh Database')}
+            onRefresh={() => triggerAction('Refresh')}
             onExport={handleExportPDF}
           />
 
@@ -103,20 +115,20 @@ export default function Dashboard() {
             </section>
           )}
 
-          {/* Recent Trips + Vehicle Status */}
+          {/* Recent Trips table + Vehicle Status distribution */}
           <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
             <div className="xl:col-span-2">
-              <RecentTripsTable trips={recentTrips} />
+              <RecentTripsTable trips={recentTrips} loading={loading} />
             </div>
             <div className="xl:col-span-1">
-              <VehicleStatusCard stats={kpiData?.vehicles} />
+              <VehicleStatusCard vehicles={vehicles} loading={loading} />
             </div>
           </section>
 
-          {/* Timeline + Actions */}
+          {/* Today's dispatches | Maintenance alerts | Quick actions */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <TodayDispatches />
-            <MaintenanceAlerts />
+            <TodayDispatches trips={recentTrips} loading={loading} />
+            <MaintenanceAlerts maintenanceLogs={maintenanceLogs} loading={loading} />
             <QuickActions
               onCreateTrip={() => navigate('/trip-dispatcher')}
               onRegisterVehicle={() => navigate('/fleet', { state: { openRegisterModal: true } })}
@@ -125,16 +137,8 @@ export default function Dashboard() {
             />
           </section>
 
-          {/* Analytics Charts */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between text-left">
-              <h3 className="text-base font-bold text-white">Fleet Analytics</h3>
-              <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wide">Live Data</span>
-            </div>
-            <AnalyticsCharts />
-          </section>
-
-          <ActivityTimeline />
+          {/* Recent Activity — derived from real trips + maintenance logs */}
+          <ActivityTimeline trips={recentTrips} maintenanceLogs={maintenanceLogs} loading={loading} />
         </main>
       </div>
     </div>

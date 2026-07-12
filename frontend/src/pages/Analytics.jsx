@@ -166,11 +166,24 @@ export default function Analytics() {
             </>
           )}
 
-          {/* Charts always rendered (they use their own static/mock data as fallback) */}
+          {/* Charts — fed from the same API responses as the stat cards above */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <TripPerformanceChart />
-            <FuelConsumptionChart />
-            <VehicleUtilizationChart />
+            <TripPerformanceChart
+              loading={loading}
+              data={data?.utilization?.tripsByMonth ?? []}
+            />
+            <FuelConsumptionChart
+              loading={loading}
+              data={data?.fuel?.fuelByMonth ?? []}
+            />
+            <VehicleUtilizationChart
+              loading={loading}
+              data={data?.utilization ? [
+                { name: 'On Trip',     value: data.utilization.vehiclesOnTrip ?? 0 },
+                { name: 'Available',   value: data.utilization.vehiclesAvailable ?? 0 },
+                { name: 'Maintenance', value: data.utilization.vehiclesInMaintenance ?? 0 },
+              ] : []}
+            />
           </div>
         </main>
       </div>

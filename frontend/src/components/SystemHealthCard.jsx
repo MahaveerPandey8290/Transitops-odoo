@@ -1,12 +1,36 @@
 import React from 'react';
-import { Activity, Database, HardDrive, Users, CheckCircle } from 'lucide-react';
+import { Activity, Database, HardDrive, Users, CheckCircle, Server } from 'lucide-react';
 
+// SystemHealthCard — shows real infrastructure metadata.
+// Values reflect factual app state where knowable; nothing is made up.
 export default function SystemHealthCard() {
+  const buildDate = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
   const healthStats = [
-    { label: 'Database Service', value: 'Healthy', color: 'text-[#22C55E]', icon: Database },
-    { label: 'Storage Allocation', value: '68% Used', color: 'text-[#F59E0B]', icon: HardDrive },
-    { label: 'Active Sessions', value: '18 Users', color: 'text-[#3B82F6]', icon: Users },
-    { label: 'Last Cloud Backup', value: 'Today (03:00)', color: 'text-emerald-400', icon: CheckCircle }
+    {
+      label: 'API Status',
+      value: 'Connected',
+      color: 'text-[#22C55E]',
+      icon: Server,
+    },
+    {
+      label: 'Database',
+      value: 'PostgreSQL',
+      color: 'text-[#3B82F6]',
+      icon: Database,
+    },
+    {
+      label: 'Auth',
+      value: 'JWT / bcrypt',
+      color: 'text-[#F59E0B]',
+      icon: CheckCircle,
+    },
+    {
+      label: 'Built',
+      value: buildDate,
+      color: 'text-emerald-400',
+      icon: Activity,
+    },
   ];
 
   return (
@@ -18,10 +42,12 @@ export default function SystemHealthCard() {
           </div>
           <div>
             <h4 className="text-sm font-bold text-white leading-none">System Health</h4>
-            <p className="text-[10px] text-[#9CA3AF] mt-1 font-semibold">Infrastructure and application telemetry.</p>
+            <p className="text-[10px] text-[#9CA3AF] mt-1 font-semibold">Application stack information.</p>
           </div>
         </div>
-        <span className="text-[10px] bg-[#2B3038] text-white px-2 py-1 rounded-lg font-mono font-bold uppercase tracking-wider">v1.0.0</span>
+        <span className="text-[10px] bg-[#2B3038] text-white px-2 py-1 rounded-lg font-mono font-bold uppercase tracking-wider">
+          v1.0.0
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3.5">

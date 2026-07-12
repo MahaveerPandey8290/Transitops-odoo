@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Shield, Loader2, ChevronDown } from 'lucide-react';
 
 export default function LoginForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -66,9 +68,12 @@ export default function LoginForm() {
       setTimeout(() => {
         setIsLoading(false);
         setIsSuccess(true);
-        // Reset success state after a brief moment or redirect
-        setTimeout(() => setIsSuccess(false), 3000);
-      }, 1800);
+        // Redirect to dashboard after a brief delay
+        setTimeout(() => {
+          setIsSuccess(false);
+          navigate('/dashboard');
+        }, 1200);
+      }, 1500);
     }
   };
 

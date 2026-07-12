@@ -1,13 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-        {/* Redirect any other path to /login for this application demo */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        {/* Redirect any other path to /login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

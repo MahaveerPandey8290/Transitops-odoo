@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  FLEET_MANAGER
+  DISPATCHER
+  SAFETY_OFFICER
+  FINANCIAL_ANALYST
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  ON_TRIP
+  IN_SHOP
+  RETIRED
+}
+
+enum VehicleType {
+  TRUCK
+  VAN
+  BUS
+  SEDAN
+  MOTORCYCLE
+}
+
+enum DriverStatus {
+  AVAILABLE
+  ON_TRIP
+  OFF_DUTY
+  SUSPENDED
+}
+
+enum LicenseCategory {
+  LMV   // Light Motor Vehicle
+  HMV   // Heavy Motor Vehicle
+  MCWG  // Motorcycle with Gear
+  TRANS // Transport / Commercial
+}
+
+enum TripStatus {
+  DRAFT
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+}
+
+enum MaintenanceStatus {
+  OPEN
+  CLOSED
+}
+
+enum ExpenseCategory {
+  TOLL
+  PARKING
+  FINE
+  REPAIR
+  OTHER
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String
+  name                String
+  role                UserRole
+  // Account lockout: 5 consecutive failures locks the account temporarily
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model Vehicle {
+  id                 String        @id @default(cuid())
+  registrationNumber String        @unique
+  make               String
+  model              String
+  year               Int
+  type               VehicleType
+  status             VehicleStatus @default(AVAILABLE)
+  region             String
+  maxLoadCapacityKg  Decimal       @db.Decimal(10, 2)
+  currentOdometerKm  Decimal       @default(0) @db.Decimal(10, 2)
+  purchaseCost       Decimal       @db.Decimal(12, 2)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  trips           Trip[]
+  maintenanceLogs MaintenanceLog[]
+  fuelLogs        FuelLog[]
+}
+
+model Driver {
+  id                String          @id @default(cuid())
+  name              String
+  licenseNumber     String          @unique
+  licenseCategory   LicenseCategory
+  licenseExpiryDate DateTime
+  phone             String
+  // 0–100; Safety Officer monitors this; decremented on incidents
+  safetyScore       Int             @default(100)
+  status            DriverStatus    @default(AVAILABLE)
+  region            String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  trips Trip[]
+}
+
+model Trip {
+  id                String     @id @default(cuid())
+  vehicleId         String
+  driverId          String
+  origin            String
+  destination       String
+  cargoWeightKg     Decimal    @db.Decimal(10, 2)
+  plannedDistanceKm Decimal    @db.Decimal(10, 2)
+  // Planned fare entered at creation; feeds ROI calc on completed trips
+  revenue           Decimal    @default(0) @db.Decimal(12, 2)
+  status            TripStatus @default(DRAFT)
+  scheduledAt       DateTime
+  dispatchedAt      DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  notes             String?
+
+  // Odometer snapshots: start captured at dispatch, final at completion
+  startOdometerKm Decimal? @db.Decimal(10, 2)
+  finalOdometerKm Decimal? @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
+  driver   Driver    @relation(fields: [driverId], references: [id])
+  // FuelLog is the single source of truth for fuel; linked via tripId
+  fuelLogs FuelLog[]
+
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([status])
+}
+
+model MaintenanceLog {
+  id          String            @id @default(cuid())
+  vehicleId   String
+  description String
+  status      MaintenanceStatus @default(OPEN)
+  cost        Decimal           @default(0) @db.Decimal(12, 2)
+  openedAt    DateTime          @default(now())
+  closedAt    DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId])
+  @@index([status])
+}
+
+// FuelLog is the single source of truth for all fuel consumption.
+// On trip completion a FuelLog entry is created (tripId set); stand-alone
+// refuels (tripId null) are also supported for the fuel-expense screen.
+model FuelLog {
+  id            String   @id @default(cuid())
+  vehicleId     String
+  tripId        String?
+  liters        Decimal  @db.Decimal(10, 2)
+  pricePerLiter Decimal  @db.Decimal(8, 2)
+  totalCost     Decimal  @db.Decimal(12, 2)
+  odometer      Decimal  @db.Decimal(10, 2)
+  loggedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  trip    Trip?   @relation(fields: [tripId], references: [id])
+
+  @@index([vehicleId])
+  @@index([tripId])
+}
+
+// Operational expenses separate from fuel/maintenance.
+// Operational cost = Fuel + Maintenance only (per spec §3.7).
+// Expenses are shown as a separate line item on the cost report.
+model Expense {
+  id          String          @id @default(cuid())
+  vehicleId   String?
+  driverId    String?
+  category    ExpenseCategory
+  amount      Decimal         @db.Decimal(12, 2)
+  description String
+  occurredAt  DateTime
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([vehicleId])
+  @@index([driverId])
+}

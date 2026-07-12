@@ -46,11 +46,6 @@ export default function Sidebar({
       path: "/drivers",
     },
     {
-      name: "Trips",
-      icon: Route,
-      path: "/trips",
-    },
-    {
       name: "Trip Dispatcher",
       icon: Send,
       path: "/trip-dispatcher",

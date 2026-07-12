@@ -1,132 +1,354 @@
 import React, { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import TopNavbar from "../components/TopNavbar";
-import DashboardHeader from "../components/DashboardHeader";
-import FilterBar from "../components/FilterBar";
-import KPICard from "../components/KPICard";
 
-import TripAssignmentCard from "../components/TripAssignmentCard";
-import DispatchTimeline from "../components/DispatchTimeline";
-import ActiveTripsTable from "../components/ActiveTripsTable";
+const TripDispatcher = () => {
+  const [tripData, setTripData] = useState({
+    passenger: "",
+    pickup: "",
+    drop: "",
+    vehicle: "",
+    driver: "",
+    priority: "Normal",
+  });
 
-import {
-  Route,
-  Truck,
-  Users,
-  Clock,
-  CheckCircle,
-  MapPinned,
-} from "lucide-react";
+  const [trips, setTrips] = useState([
+    {
+      id: 1,
+      passenger: "Rahul Sharma",
+      pickup: "Railway Station",
+      drop: "Airport",
+      vehicle: "Bus-102",
+      driver: "Amit",
+      status: "Assigned",
+    },
+    {
+      id: 2,
+      passenger: "Priya Singh",
+      pickup: "City Mall",
+      drop: "University",
+      vehicle: "Cab-205",
+      driver: "Rakesh",
+      status: "Pending",
+    },
+  ]);
 
-export default function TripDispatcher() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const handleChange = (e) => {
+    setTripData({
+      ...tripData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-  const kpis = [
-    {
-      title: "Today's Trips",
-      value: "55",
-      trend: "+12%",
-      trendType: "up",
-      icon: Route,
-      iconBg: "bg-blue-500/10 text-blue-400",
-    },
-    {
-      title: "Available Fleet",
-      value: "42",
-      trend: "Ready",
-      trendType: "neutral",
-      icon: Truck,
-      iconBg: "bg-green-500/10 text-green-400",
-    },
-    {
-      title: "Drivers Active",
-      value: "26",
-      trend: "Online",
-      trendType: "neutral",
-      icon: Users,
-      iconBg: "bg-purple-500/10 text-purple-400",
-    },
-    {
-      title: "Pending Dispatch",
-      value: "07",
-      trend: "Urgent",
-      trendType: "down",
-      icon: Clock,
-      iconBg: "bg-amber-500/10 text-amber-400",
-    },
-    {
-      title: "Completed",
-      value: "48",
-      trend: "+9%",
-      trendType: "up",
-      icon: CheckCircle,
-      iconBg: "bg-emerald-500/10 text-emerald-400",
-    },
-    {
-      title: "Live Routes",
-      value: "14",
-      trend: "Tracking",
-      trendType: "neutral",
-      icon: MapPinned,
-      iconBg: "bg-cyan-500/10 text-cyan-400",
-    },
-  ];
+
+  const dispatchTrip = () => {
+    if (
+      !tripData.passenger ||
+      !tripData.pickup ||
+      !tripData.drop
+    ) {
+      alert("Please fill required fields");
+      return;
+    }
+
+    const newTrip = {
+      id: trips.length + 1,
+      ...tripData,
+      status: "Assigned",
+    };
+
+    setTrips([...trips, newTrip]);
+
+    setTripData({
+      passenger: "",
+      pickup: "",
+      drop: "",
+      vehicle: "",
+      driver: "",
+      priority: "Normal",
+    });
+  };
+
 
   return (
-    <div className="min-h-screen bg-[#0F1115] text-white flex">
+    <div className="flex min-h-screen bg-gray-100">
 
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() =>
-          setSidebarCollapsed(!sidebarCollapsed)
-        }
-      />
+      <Sidebar />
 
-      <div className="flex-1 flex flex-col min-h-screen">
 
-        <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
+      <div className="flex-1">
 
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+        <TopNavbar />
 
-          <DashboardHeader />
 
-          <FilterBar />
+        <div className="p-6">
 
-          <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
 
-            {kpis.map((item, index) => (
-              <KPICard
-                key={index}
-                title={item.title}
-                value={item.value}
-                trend={item.trend}
-                trendType={item.trendType}
-                icon={item.icon}
-                iconBgColor={item.iconBg}
+          {/* Header */}
+          <div className="mb-6">
+
+            <h1 className="text-3xl font-bold text-gray-800">
+              Trip Dispatcher
+            </h1>
+
+            <p className="text-gray-500">
+              Create and assign trips to available vehicles
+            </p>
+
+          </div>
+
+
+
+          {/* Dispatch Form */}
+
+          <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+
+
+            <h2 className="text-xl font-semibold mb-5">
+              Dispatch New Trip
+            </h2>
+
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+
+              <input
+                type="text"
+                name="passenger"
+                placeholder="Passenger Name"
+                value={tripData.passenger}
+                onChange={handleChange}
+                className="border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
               />
-            ))}
 
-          </section>
 
-          <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+              <input
+                type="text"
+                name="pickup"
+                placeholder="Pickup Location"
+                value={tripData.pickup}
+                onChange={handleChange}
+                className="border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+              />
 
-            <div className="xl:col-span-2">
-              <TripAssignmentCard />
+
+              <input
+                type="text"
+                name="drop"
+                placeholder="Drop Location"
+                value={tripData.drop}
+                onChange={handleChange}
+                className="border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+              />
+
+
+
+              <select
+                name="vehicle"
+                value={tripData.vehicle}
+                onChange={handleChange}
+                className="border p-3 rounded-lg"
+              >
+
+                <option value="">
+                  Select Vehicle
+                </option>
+
+                <option>
+                  Bus-101
+                </option>
+
+                <option>
+                  Bus-102
+                </option>
+
+                <option>
+                  Cab-205
+                </option>
+
+              </select>
+
+
+
+              <select
+                name="driver"
+                value={tripData.driver}
+                onChange={handleChange}
+                className="border p-3 rounded-lg"
+              >
+
+                <option value="">
+                  Select Driver
+                </option>
+
+                <option>
+                  Amit
+                </option>
+
+                <option>
+                  Rakesh
+                </option>
+
+                <option>
+                  Suresh
+                </option>
+
+              </select>
+
+
+
+              <select
+                name="priority"
+                value={tripData.priority}
+                onChange={handleChange}
+                className="border p-3 rounded-lg"
+              >
+
+                <option>
+                  Normal
+                </option>
+
+                <option>
+                  High
+                </option>
+
+                <option>
+                  Emergency
+                </option>
+
+              </select>
+
+
             </div>
 
-            <DispatchTimeline />
 
-          </section>
 
-          <ActiveTripsTable />
+            <button
+              onClick={dispatchTrip}
+              className="mt-6 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+            >
+              Dispatch Trip
+            </button>
 
-        </main>
+
+          </div>
+
+
+
+
+          {/* Active Trips Table */}
+
+          <div className="bg-white rounded-xl shadow-md p-6">
+
+
+            <h2 className="text-xl font-semibold mb-5">
+              Active Trips
+            </h2>
+
+
+            <div className="overflow-x-auto">
+
+              <table className="w-full">
+
+                <thead>
+
+                  <tr className="bg-gray-100 text-left">
+
+                    <th className="p-3">
+                      Passenger
+                    </th>
+
+                    <th className="p-3">
+                      Pickup
+                    </th>
+
+                    <th className="p-3">
+                      Drop
+                    </th>
+
+                    <th className="p-3">
+                      Vehicle
+                    </th>
+
+                    <th className="p-3">
+                      Driver
+                    </th>
+
+                    <th className="p-3">
+                      Status
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+
+
+                <tbody>
+
+                  {trips.map((trip)=>(
+
+                    <tr
+                      key={trip.id}
+                      className="border-b hover:bg-gray-50"
+                    >
+
+                      <td className="p-3">
+                        {trip.passenger}
+                      </td>
+
+                      <td className="p-3">
+                        {trip.pickup}
+                      </td>
+
+                      <td className="p-3">
+                        {trip.drop}
+                      </td>
+
+                      <td className="p-3">
+                        {trip.vehicle || "-"}
+                      </td>
+
+                      <td className="p-3">
+                        {trip.driver || "-"}
+                      </td>
+
+
+                      <td className="p-3">
+
+                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-700">
+
+                          {trip.status}
+
+                        </span>
+
+                      </td>
+
+
+                    </tr>
+
+                  ))}
+
+
+                </tbody>
+
+              </table>
+
+
+            </div>
+
+
+          </div>
+
+
+        </div>
 
       </div>
 
+
     </div>
   );
-}
+};
+
+
+export default TripDispatcher;

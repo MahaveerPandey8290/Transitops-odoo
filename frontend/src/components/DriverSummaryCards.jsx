@@ -6,7 +6,7 @@ export default function DriverSummaryCards({ stats }) {
     {
       title: 'Total Drivers',
       value: stats.total || 0,
-      trend: '+4 new this month',
+      trend: 'Registered drivers',
       color: 'text-[#3B82F6] bg-[#3B82F6]/10 border-[#3B82F6]/20',
       icon: Users,
     },

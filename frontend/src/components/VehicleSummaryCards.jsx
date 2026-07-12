@@ -2,32 +2,37 @@ import React from 'react';
 import { Truck, CheckCircle, Navigation, Wrench } from 'lucide-react';
 
 export default function VehicleSummaryCards({ stats }) {
+  const total = stats.total ?? 0;
+  const available = stats.available ?? 0;
+  const onTrip = stats.onTrip ?? 0;
+  const maintenance = stats.maintenance ?? 0;
+
   const cards = [
     {
       title: 'Total Vehicles',
-      value: stats.total || 53,
-      trend: '+2 new this month',
+      value: total,
+      trend: 'Registered assets',
       color: 'text-[#3B82F6] bg-[#3B82F6]/10 border-[#3B82F6]/20',
       icon: Truck,
     },
     {
       title: 'Available',
-      value: stats.available || 42,
-      trend: 'Optimal (79%)',
+      value: available,
+      trend: total > 0 ? `${Math.round((available / total) * 100)}% of total` : '0% of total',
       color: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/20',
       icon: CheckCircle,
     },
     {
       title: 'On Active Trip',
-      value: stats.onTrip || 8,
-      trend: '15% dispatch load',
+      value: onTrip,
+      trend: total > 0 ? `${Math.round((onTrip / total) * 100)}% of total` : '0% of total',
       color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
       icon: Navigation,
     },
     {
       title: 'In Maintenance',
-      value: stats.maintenance || 3,
-      trend: '-1 since yesterday',
+      value: maintenance,
+      trend: total > 0 ? `${Math.round((maintenance / total) * 100)}% of total` : '0% of total',
       color: 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20',
       icon: Wrench,
     },

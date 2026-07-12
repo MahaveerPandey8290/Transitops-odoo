@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopNavbar from '../components/TopNavbar';
 import FilterBar from '../components/FilterBar';
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [actionAlert, setActionAlert] = useState(null);
@@ -113,10 +115,10 @@ export default function Dashboard() {
             <TodayDispatches />
             <MaintenanceAlerts />
             <QuickActions 
-              onCreateTrip={() => triggerAction('Create Dispatch Trip')}
-              onRegisterVehicle={() => triggerAction('Register New Fleet Asset')}
-              onAddDriver={() => triggerAction('Onboard New Driver Profile')}
-              onFuelEntry={() => triggerAction('Log Fuel Dispensation transaction')}
+              onCreateTrip={() => navigate('/trip-dispatcher')}
+              onRegisterVehicle={() => navigate('/fleet', { state: { openRegisterModal: true } })}
+              onAddDriver={() => navigate('/drivers', { state: { openAddDriverModal: true } })}
+              onFuelEntry={() => navigate('/fuel-management')}
             />
           </section>
 

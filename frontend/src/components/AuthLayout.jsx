@@ -80,7 +80,7 @@ export default function AuthLayout({ children }) {
       </section>
 
       {/* Right Section: Interactive Login Card */}
-      <main className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10 md:p-14 lg:p-20 relative bg-[#F8FAFC] md:overflow-y-auto">
+      <main className="flex-1 flex flex-col justify-center items-center p-6 sm:p-8 md:p-10 lg:p-12 relative bg-[#F8FAFC] md:overflow-y-auto">
         {/* Fade-in Container for the Form */}
         <div className="w-full flex justify-center items-center animate-[fadeIn_0.7s_ease-out_forwards]">
           {children}

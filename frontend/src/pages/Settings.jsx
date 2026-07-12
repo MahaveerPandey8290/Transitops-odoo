@@ -121,7 +121,7 @@ export default function Settings() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#2B3038]/50 pb-5">
             <div className="text-left">
               <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">Settings</h1>
-              <p className="text-xs md:text-sm text-[#9CA3AF] mt-1 font-medium">Configure organization settings, fleet preferences and user permissions.</p>
+              <p className="text-sm text-[#9CA3AF] mt-1.5 font-medium max-w-2xl leading-relaxed">Configure organization settings, fleet preferences and user permissions.</p>
             </div>
             
             <div className="flex items-center gap-3">

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopNavbar from '../components/TopNavbar';
 import VehicleSummaryCards from '../components/VehicleSummaryCards';
@@ -15,6 +16,15 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 export default function VehicleRegistry() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.openRegisterModal) {
+      setIsModalOpen(true);
+      setEditVehicle(null);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // 1. Core State: Vehicle Data List
   const [vehicles, setVehicles] = useState([
@@ -248,7 +258,7 @@ export default function VehicleRegistry() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="text-left">
               <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">Vehicle Registry</h1>
-              <p className="text-xs md:text-sm text-[#9CA3AF] mt-1 font-medium">Manage, monitor and organize all fleet vehicles from a single place.</p>
+              <p className="text-sm text-[#9CA3AF] mt-1.5 font-medium max-w-2xl leading-relaxed">Manage, monitor and organize all fleet vehicles from a single place.</p>
             </div>
             
             <button

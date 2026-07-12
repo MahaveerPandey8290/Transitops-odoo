@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Shield, Loader2, ChevronDown } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import RoleSelect from './RoleSelect';
+import AuthFooter from './AuthFooter';
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -15,13 +17,6 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  const roles = [
-    'Fleet Manager',
-    'Dispatcher',
-    'Safety Officer',
-    'Financial Analyst'
-  ];
 
   const validate = () => {
     const tempErrors = {};
@@ -100,37 +95,12 @@ export default function LoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {/* Role Select Field */}
-        <div className="space-y-1.5 text-left">
-          <label htmlFor="role" className="block text-sm font-medium text-slate-700">
-            Select Your Role
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <Shield size={18} />
-            </div>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={isLoading}
-              className={`w-full h-[52px] pl-10 pr-10 bg-white border ${
-                errors.role ? 'border-red-400 focus:ring-red-100' : 'border-[#E2E8F0] focus:border-[#F59E0B] focus:ring-[#F59E0B]/10'
-              } rounded-[14px] text-sm text-[#0F172A] font-medium outline-none focus:ring-4 transition-all duration-200 appearance-none cursor-pointer disabled:opacity-60`}
-            >
-              <option value="" disabled hidden>Choose your role</option>
-              {roles.map((role) => (
-                <option key={role} value={role} className="text-[#0F172A]">
-                  {role}
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
-              <ChevronDown size={16} />
-            </div>
-          </div>
-          {errors.role && <p className="text-xs text-red-500 font-medium mt-1">{errors.role}</p>}
-        </div>
+        <RoleSelect
+          value={formData.role}
+          onChange={handleChange}
+          error={errors.role}
+          disabled={isLoading}
+        />
 
         {/* Email Field */}
         <div className="space-y-1.5 text-left">
@@ -232,6 +202,13 @@ export default function LoginForm() {
           </button>
         </div>
       </form>
+
+      {/* Footer redirection */}
+      <AuthFooter 
+        text="Don't have an account?"
+        linkText="Create Account"
+        linkTo="/signup"
+      />
     </div>
   );
 }

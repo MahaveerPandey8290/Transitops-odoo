@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopNavbar from '../components/TopNavbar';
 import DriverSummaryCards from '../components/DriverSummaryCards';
@@ -16,6 +17,15 @@ import { Users, Plus, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 export default function Drivers() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.openAddDriverModal) {
+      setIsModalOpen(true);
+      setEditDriver(null);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // 1. Core State: Drivers compliance data list
   const [drivers, setDrivers] = useState([
@@ -271,7 +281,7 @@ export default function Drivers() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="text-left">
               <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">Drivers & Safety Profiles</h1>
-              <p className="text-xs md:text-sm text-[#9CA3AF] mt-1 font-medium">Manage drivers, licenses, availability and safety compliance across your fleet.</p>
+              <p className="text-sm text-[#9CA3AF] mt-1.5 font-medium max-w-2xl leading-relaxed">Manage drivers, licenses, availability and safety compliance across your fleet.</p>
             </div>
             
             <button

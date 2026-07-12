@@ -8,6 +8,7 @@ import {
 
 
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import VehicleRegistry from "./pages/VehicleRegistry";
 import Drivers from "./pages/Drivers";
@@ -33,6 +34,11 @@ function App() {
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        <Route
+          path="/signup"
+          element={<Signup />}
         />
 
 
@@ -115,7 +121,7 @@ function App() {
           path="*"
           element={
             <Navigate
-              to="/dashboard"
+              to="/login"
               replace
             />
           }

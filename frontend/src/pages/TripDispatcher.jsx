@@ -41,7 +41,7 @@ export default function TripDispatcher() {
         vehicleApi.available(),
         driverApi.available(),
       ]);
-      setTrips(tripsRes.data?.trips ?? []);
+      setTrips(tripsRes.data ?? []);
       setAvailVehicles(vRes.data ?? []);
       setAvailDrivers(dRes.data ?? []);
     } catch (err) {

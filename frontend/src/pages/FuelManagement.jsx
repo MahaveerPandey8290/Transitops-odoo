@@ -36,9 +36,9 @@ export default function FuelManagement() {
         fuelApi.listExpenses({ limit: 50 }),
         vehicleApi.list({ limit: 100 }),
       ]);
-      setFuelLogs(fl.data?.fuelLogs ?? []);
-      setExpenses(ex.data?.expenses ?? []);
-      setVehicles(vRes.data?.vehicles ?? []);
+      setFuelLogs(fl.data ?? []);
+      setExpenses(ex.data ?? []);
+      setVehicles(vRes.data ?? []);
     } catch (err) {
       showToast(`Load error: ${err.message}`);
     } finally {

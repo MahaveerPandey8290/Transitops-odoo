@@ -32,8 +32,8 @@ export default function Maintenance() {
         maintenanceApi.list({ limit: 50 }),
         vehicleApi.list({ limit: 100 }),
       ]);
-      setLogs(logsRes.data?.logs ?? []);
-      setVehicles(vRes.data?.vehicles ?? []);
+      setLogs(logsRes.data ?? []);
+      setVehicles(vRes.data ?? []);
     } catch (err) {
       showToast(`Load error: ${err.message}`);
     } finally {

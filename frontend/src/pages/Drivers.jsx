@@ -63,7 +63,7 @@ export default function Drivers() {
     setLoading(true); setApiError('');
     try {
       const res = await driverApi.list({ limit: 100 });
-      setDrivers((res.data?.drivers ?? []).map(mapDriver));
+      setDrivers((res.data ?? []).map(mapDriver));
     } catch (err) {
       setApiError(err.message);
     } finally {

@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Check } from 'lucide-react';
 
+const REGIONS = ['North Zone', 'South Zone', 'East Zone', 'West Zone'];
+const VEHICLE_TYPES = [
+  { value: 'TRUCK', label: 'Truck' },
+  { value: 'VAN', label: 'Van' },
+  { value: 'BUS', label: 'Bus' },
+  { value: 'SEDAN', label: 'Sedan' },
+  { value: 'MOTORCYCLE', label: 'Motorcycle' },
+];
+
 export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existingVehicles = [] }) {
   const [formData, setFormData] = useState({
     regNumber: '',
-    name: '',
+    make: '',
     model: '',
-    type: 'Truck',
-    manufacturer: '',
+    type: 'TRUCK',
     capacity: '',
-    fuelType: 'Diesel',
-    cost: '',
-    purchaseDate: '',
-    odometer: '',
+    purchaseCost: '',
+    year: String(new Date().getFullYear()),
+    odometer: '0',
     region: 'North Zone',
-    status: 'Available',
-    imageUrl: ''
+    status: 'AVAILABLE'
   });
 
   const [errors, setErrors] = useState({});
@@ -25,34 +31,28 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
       setFormData({
         id: vehicle.id,
         regNumber: vehicle.regNumber || '',
-        name: vehicle.name || '',
+        make: vehicle.make || '',
         model: vehicle.model || '',
-        type: vehicle.type || 'Truck',
-        manufacturer: vehicle.manufacturer || '',
-        capacity: vehicle.capacity || '',
-        fuelType: vehicle.fuelType || 'Diesel',
-        cost: vehicle.cost || '',
-        purchaseDate: vehicle.purchaseDate || '',
-        odometer: vehicle.odometer || '',
+        type: vehicle.type || 'TRUCK',
+        capacity: String(vehicle.capacity || ''),
+        purchaseCost: String(vehicle.purchaseCost || ''),
+        year: String(vehicle.year || new Date().getFullYear()),
+        odometer: String(vehicle.odometer || '0'),
         region: vehicle.region || 'North Zone',
-        status: vehicle.status || 'Available',
-        imageUrl: vehicle.imageUrl || ''
+        status: vehicle.status || 'AVAILABLE',
       });
     } else {
       setFormData({
         regNumber: '',
-        name: '',
+        make: '',
         model: '',
-        type: 'Truck',
-        manufacturer: '',
+        type: 'TRUCK',
         capacity: '',
-        fuelType: 'Diesel',
-        cost: '',
-        purchaseDate: new Date().toISOString().split('T')[0],
-        odometer: '',
+        purchaseCost: '',
+        year: String(new Date().getFullYear()),
+        odometer: '0',
         region: 'North Zone',
-        status: 'Available',
-        imageUrl: ''
+        status: 'AVAILABLE',
       });
     }
     setErrors({});
@@ -62,10 +62,9 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    // clear error for this field
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -76,7 +75,7 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
     if (!formData.regNumber.trim()) {
       newErrors.regNumber = 'Registration Number is required.';
     } else {
-      // 2. Reg number unique (only check if creating new or changing reg number of existing)
+      // 2. Reg number unique
       const isDuplicate = existingVehicles.some(v => 
         v.regNumber.toLowerCase().trim() === formData.regNumber.toLowerCase().trim() && 
         (!vehicle || v.id !== vehicle.id)
@@ -86,7 +85,25 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
       }
     }
 
-    // 3. Capacity numeric positive
+    // 3. Brand/Make required
+    if (!formData.make.trim()) {
+      newErrors.make = 'Manufacturer Brand / Make is required.';
+    }
+
+    // 4. Model required
+    if (!formData.model.trim()) {
+      newErrors.model = 'Model is required.';
+    }
+
+    // 5. Year numeric validation
+    const yearNum = Number(formData.year);
+    if (!formData.year) {
+      newErrors.year = 'Manufacturing Year is required.';
+    } else if (isNaN(yearNum) || yearNum < 1990 || yearNum > new Date().getFullYear() + 1) {
+      newErrors.year = `Year must be between 1990 and ${new Date().getFullYear() + 1}.`;
+    }
+
+    // 6. Capacity numeric positive
     const capacityNum = Number(formData.capacity);
     if (!formData.capacity) {
       newErrors.capacity = 'Capacity is required.';
@@ -94,28 +111,20 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
       newErrors.capacity = 'Capacity must be a positive number.';
     }
 
-    // 4. Cost numeric positive
-    const costNum = Number(formData.cost);
-    if (!formData.cost) {
-      newErrors.cost = 'Acquisition Cost is required.';
-    } else if (isNaN(costNum) || costNum < 0) {
-      newErrors.cost = 'Acquisition Cost must be a positive value.';
+    // 7. Cost numeric positive
+    const costNum = Number(formData.purchaseCost);
+    if (!formData.purchaseCost) {
+      newErrors.purchaseCost = 'Purchase Cost is required.';
+    } else if (isNaN(costNum) || costNum <= 0) {
+      newErrors.purchaseCost = 'Cost must be a positive number.';
     }
 
-    // 5. Odometer numeric non-negative
+    // 8. Odometer numeric non-negative
     const odometerNum = Number(formData.odometer);
     if (formData.odometer === '') {
       newErrors.odometer = 'Odometer reading is required.';
     } else if (isNaN(odometerNum) || odometerNum < 0) {
       newErrors.odometer = 'Odometer reading must be non-negative.';
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Vehicle Name is required.';
-    }
-
-    if (!formData.model.trim()) {
-      newErrors.model = 'Model is required.';
     }
 
     setErrors(newErrors);
@@ -127,46 +136,35 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
     if (validate()) {
       onSave({
         ...formData,
+        year: Number(formData.year),
         capacity: Number(formData.capacity),
-        cost: Number(formData.cost),
+        purchaseCost: Number(formData.purchaseCost),
         odometer: Number(formData.odometer)
       });
     }
   };
 
-  // Mock document upload helper
   const handleMockUpload = (docName) => {
     alert(`Document "${docName}" simulated upload complete!`);
   };
 
   return (
     <>
-      {/* Backdrop overlay */}
-      <div 
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
-      />
+      <div onClick={onClose} className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-fade-in" />
 
-      {/* Modal Dialog container */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div className="bg-[#15181E] border border-[#2B3038] rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col justify-between max-h-[90vh] text-left animate-[fadeInUp_0.3s_cubic-bezier(0.16,1,0.3,1)_forwards]">
           
-          {/* Header */}
           <div className="p-5 border-b border-[#2B3038] flex items-center justify-between">
             <h3 className="text-base font-extrabold text-white">
               {vehicle ? 'Edit Vehicle Profile' : 'Register New Fleet Asset'}
             </h3>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-lg hover:bg-[#0F1115] border border-[#2B3038] text-[#9CA3AF] hover:text-white flex items-center justify-center transition-all cursor-pointer"
-            >
+            <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-[#0F1115] border border-[#2B3038] text-[#9CA3AF] hover:text-white flex items-center justify-center transition-all cursor-pointer">
               <X size={16} />
             </button>
           </div>
 
-          {/* Form Content */}
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-thin">
-            
             {/* Grid 1: Basic Identifiers */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -185,18 +183,18 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
               </div>
 
               <div>
-                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Vehicle Name *</label>
+                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Manufacturer Brand / Make *</label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="make"
+                  value={formData.make}
                   onChange={handleChange}
-                  placeholder="e.g. Volvo Heavy Truck"
+                  placeholder="e.g. Volvo"
                   className={`w-full h-11 px-4 bg-[#0F1115] border rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all ${
-                    errors.name ? 'border-red-500 focus:border-red-500' : 'border-[#2B3038] focus:border-[#F59E0B]'
+                    errors.make ? 'border-red-500 focus:border-red-500' : 'border-[#2B3038] focus:border-[#F59E0B]'
                   }`}
                 />
-                {errors.name && <p className="text-[10px] text-red-400 mt-1 font-semibold">{errors.name}</p>}
+                {errors.make && <p className="text-[10px] text-red-400 mt-1 font-semibold">{errors.make}</p>}
               </div>
 
               <div>
@@ -215,15 +213,18 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
               </div>
 
               <div>
-                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Manufacturer Brand</label>
+                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Manufacturing Year *</label>
                 <input
-                  type="text"
-                  name="manufacturer"
-                  value={formData.manufacturer}
+                  type="number"
+                  name="year"
+                  value={formData.year}
                   onChange={handleChange}
-                  placeholder="e.g. Volvo Trucks"
-                  className="w-full h-11 px-4 bg-[#0F1115] border border-[#2B3038] focus:border-[#F59E0B] rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all"
+                  placeholder="e.g. 2024"
+                  className={`w-full h-11 px-4 bg-[#0F1115] border rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all ${
+                    errors.year ? 'border-red-500 focus:border-red-500' : 'border-[#2B3038] focus:border-[#F59E0B]'
+                  }`}
                 />
+                {errors.year && <p className="text-[10px] text-red-400 mt-1 font-semibold">{errors.year}</p>}
               </div>
             </div>
 
@@ -237,32 +238,16 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
                   onChange={handleChange}
                   className="w-full h-11 px-4 bg-[#0F1115] border border-[#2B3038] focus:border-[#F59E0B] rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all cursor-pointer"
                 >
-                  <option value="Truck">Truck</option>
-                  <option value="Van">Van</option>
-                  <option value="Mini Truck">Mini Truck</option>
-                  <option value="Trailer">Trailer</option>
+                  {VEHICLE_TYPES.map(t => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
                 </select>
               </div>
 
               <div>
-                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Fuel Configuration</label>
-                <select
-                  name="fuelType"
-                  value={formData.fuelType}
-                  onChange={handleChange}
-                  className="w-full h-11 px-4 bg-[#0F1115] border border-[#2B3038] focus:border-[#F59E0B] rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all cursor-pointer"
-                >
-                  <option value="Diesel">Diesel</option>
-                  <option value="Petrol">Petrol</option>
-                  <option value="Electric">Electric</option>
-                  <option value="CNG">CNG</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Load Capacity (lbs) *</label>
+                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Load Capacity (kg) *</label>
                 <input
-                  type="text"
+                  type="number"
                   name="capacity"
                   value={formData.capacity}
                   onChange={handleChange}
@@ -273,29 +258,29 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
                 />
                 {errors.capacity && <p className="text-[10px] text-red-400 mt-1 font-semibold">{errors.capacity}</p>}
               </div>
-            </div>
 
-            {/* Grid 3: Operational Logistics & Valuations */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Acquisition Cost ($) *</label>
+                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Purchase Cost (₹) *</label>
                 <input
-                  type="text"
-                  name="cost"
-                  value={formData.cost}
+                  type="number"
+                  name="purchaseCost"
+                  value={formData.purchaseCost}
                   onChange={handleChange}
-                  placeholder="e.g. 75000"
+                  placeholder="e.g. 2400000"
                   className={`w-full h-11 px-4 bg-[#0F1115] border rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all ${
-                    errors.cost ? 'border-red-500 focus:border-red-500' : 'border-[#2B3038] focus:border-[#F59E0B]'
+                    errors.purchaseCost ? 'border-red-500 focus:border-red-500' : 'border-[#2B3038] focus:border-[#F59E0B]'
                   }`}
                 />
-                {errors.cost && <p className="text-[10px] text-red-400 mt-1 font-semibold">{errors.cost}</p>}
+                {errors.purchaseCost && <p className="text-[10px] text-red-400 mt-1 font-semibold">{errors.purchaseCost}</p>}
               </div>
+            </div>
 
+            {/* Grid 3: Operational Logistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Current Odometer (mi) *</label>
+                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Current Odometer (km) *</label>
                 <input
-                  type="text"
+                  type="number"
                   name="odometer"
                   value={formData.odometer}
                   onChange={handleChange}
@@ -308,20 +293,6 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
               </div>
 
               <div>
-                <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Purchase Date</label>
-                <input
-                  type="date"
-                  name="purchaseDate"
-                  value={formData.purchaseDate}
-                  onChange={handleChange}
-                  className="w-full h-11 px-4 bg-[#0F1115] border border-[#2B3038] focus:border-[#F59E0B] rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all cursor-pointer font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Grid 4: Region & Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
                 <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Assigned Region</label>
                 <select
                   name="region"
@@ -329,10 +300,9 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
                   onChange={handleChange}
                   className="w-full h-11 px-4 bg-[#0F1115] border border-[#2B3038] focus:border-[#F59E0B] rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all cursor-pointer"
                 >
-                  <option value="North Zone">North Zone</option>
-                  <option value="South Zone">South Zone</option>
-                  <option value="East Zone">East Zone</option>
-                  <option value="West Zone">West Zone</option>
+                  {REGIONS.map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
                 </select>
               </div>
 
@@ -344,28 +314,14 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
                   onChange={handleChange}
                   className="w-full h-11 px-4 bg-[#0F1115] border border-[#2B3038] focus:border-[#F59E0B] rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all cursor-pointer"
                 >
-                  <option value="Available">Available</option>
-                  <option value="On Trip">On Active Trip</option>
-                  <option value="Maintenance">In Maintenance</option>
-                  <option value="Retired">Retired</option>
+                  <option value="AVAILABLE">Available</option>
+                  <option value="ON_TRIP">On Active Trip</option>
+                  <option value="IN_SHOP">In Maintenance</option>
+                  <option value="RETIRED">Retired</option>
                 </select>
               </div>
             </div>
 
-            {/* Image URL Mock */}
-            <div>
-              <label className="text-[10px] text-[#9CA3AF] font-bold block mb-1.5 uppercase tracking-wide">Asset Image URL</label>
-              <input
-                type="text"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleChange}
-                placeholder="https://images.unsplash.com/... or leave blank for default placeholder"
-                className="w-full h-11 px-4 bg-[#0F1115] border border-[#2B3038] focus:border-[#F59E0B] rounded-xl text-xs font-semibold text-white outline-none focus:ring-4 focus:ring-[#F59E0B]/10 transition-all"
-              />
-            </div>
-
-            {/* Document Upload Simulation buttons */}
             <div className="space-y-2.5">
               <label className="text-[10px] text-[#9CA3AF] font-bold block uppercase tracking-wide">Document Attachments</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -397,7 +353,6 @@ export default function VehicleModal({ isOpen, onClose, vehicle, onSave, existin
             </div>
           </form>
 
-          {/* Footer Actions */}
           <div className="p-4 border-t border-[#2B3038] bg-[#0F1115] flex items-center justify-end gap-3.5">
             <button
               type="button"

@@ -37,9 +37,9 @@ export default function Dashboard() {
           maintenanceApi.list({ limit: 50 }),   // open logs for alerts
         ]);
         setKpiData(kpiRes.data);
-        setRecentTrips(tripsRes.data?.trips ?? []);
-        setVehicles(vehiclesRes.data?.vehicles ?? []);
-        setMaintenanceLogs(maintRes.data?.logs ?? []);
+        setRecentTrips(tripsRes.data ?? []);
+        setVehicles(vehiclesRes.data ?? []);
+        setMaintenanceLogs(maintRes.data ?? []);
       } catch (err) {
         console.error('Dashboard load error:', err.message);
       } finally {

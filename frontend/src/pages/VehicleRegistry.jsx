@@ -62,7 +62,7 @@ export default function VehicleRegistry() {
     setApiError('');
     try {
       const res = await vehicleApi.list({ limit: 100 });
-      setVehicles((res.data?.vehicles ?? []).map(mapVehicle));
+      setVehicles((res.data ?? []).map(mapVehicle));
     } catch (err) {
       setApiError(err.message);
     } finally {
@@ -144,6 +144,7 @@ export default function VehicleRegistry() {
           make: formData.make, model: formData.model, year: formData.year,
           type: formData.type, region: formData.region,
           maxLoadCapacityKg: formData.capacity, status: formData.status,
+          currentOdometerKm: formData.odometer,
         });
         showToast(`Vehicle ${formData.regNumber} updated successfully!`);
       } else {
@@ -153,6 +154,7 @@ export default function VehicleRegistry() {
           type: formData.type, region: formData.region,
           maxLoadCapacityKg: formData.capacity,
           purchaseCost: formData.purchaseCost ?? 0,
+          currentOdometerKm: formData.odometer ?? 0,
         });
         showToast(`Vehicle ${formData.regNumber} registered successfully!`);
       }

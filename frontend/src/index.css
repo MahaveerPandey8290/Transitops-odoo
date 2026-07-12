@@ -79,3 +79,141 @@ body {
     linear-gradient(to right, rgba(229, 231, 235, 0.3) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(229, 231, 235, 0.3) 1px, transparent 1px);
 }
+
+/* --- LIGHT MODE OVERRIDES --- */
+html.dark body {
+  background-color: #0F1115 !important;
+  color: #FFFFFF !important;
+}
+
+html:not(.dark) body {
+  background-color: #F3F4F6 !important;
+  color: #1E293B !important;
+}
+
+/* Base layout background overrides */
+html:not(.dark) .bg-\[\#0F1115\],
+html:not(.dark) .bg-slate-950,
+html:not(.dark) .bg-\[\#0F1115\]\/90,
+html:not(.dark) .bg-\[\#0F1115\]\/30 {
+  background-color: #F3F4F6 !important;
+}
+
+/* Sidebar background - clean glassmorphism for light/dark mode */
+html:not(.dark) .bg-\[\#15181E\]\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+html.dark .bg-\[\#15181E\]\/80 {
+  background-color: rgba(21, 24, 30, 0.8) !important;
+}
+
+/* Card and dashboard widgets background - clean pure white */
+html:not(.dark) .bg-\[\#171A21\],
+html:not(.dark) .bg-\[\#15181E\] {
+  background-color: #FFFFFF !important;
+}
+
+/* Secondary bg shades (like active rows, hover items, details panels) */
+html:not(.dark) .bg-\[\#121419\]\/30,
+html:not(.dark) .bg-\[\#15181E\]\/40 {
+  background-color: #F1F5F9 !important;
+}
+
+/* Button text color overrides for light mode */
+html:not(.dark) button.bg-\[\#171A21\],
+html:not(.dark) button.bg-\[\#15181E\]\/40 {
+  color: #1F2937 !important;
+}
+
+/* Hover background styling overrides */
+html:not(.dark) .hover\:bg-\[\#171A21\]:hover {
+  background-color: #F1F5F9 !important;
+}
+
+/* Border color overrides */
+html:not(.dark) .border-\[\#2B3038\],
+html:not(.dark) .border-\[\#2B3038\]\/50,
+html:not(.dark) .border-slate-800,
+html:not(.dark) .divide-\[\#2B3038\]\/50 > * + * {
+  border-color: #E2E8F0 !important;
+}
+
+/* Primary text override (white -> slate-800)
+   Excludes buttons, active tabs, success badges, and explicit colors */
+html:not(.dark) .text-white:not(button):not(button *):not(a):not(a *):not(.bg-\[\#F59E0B\] *):not(.bg-emerald-500 *):not(.bg-red-500 *):not(.bg-\[\#22C55E\] *):not(.text-emerald-400):not(.text-red-400):not(.text-\[\#F59E0B\]):not(.bg-gradient-to-br *) {
+  color: #1F2937 !important;
+}
+
+/* Secondary text override (slate-400 -> slate-500) */
+html:not(.dark) .text-\[\#9CA3AF\] {
+  color: #4B5563 !important;
+}
+
+html:not(.dark) .text-slate-400 {
+  color: #4B5563 !important;
+}
+
+/* Light text color overrides for light mode */
+html:not(.dark) .text-\[\#E2E8F0\],
+html:not(.dark) .text-slate-100,
+html:not(.dark) .text-slate-200,
+html:not(.dark) .text-slate-300,
+html:not(.dark) .text-gray-100,
+html:not(.dark) .text-gray-200,
+html:not(.dark) .text-gray-300 {
+  color: #1F2937 !important;
+}
+
+/* Hover color text overrides */
+html:not(.dark) .hover\:text-white:hover {
+  color: #1F2937 !important;
+}
+
+/* Re-allow white text on colored button hovers */
+html:not(.dark) button.bg-\[\#F59E0B\]:hover,
+html:not(.dark) button.bg-emerald-500:hover,
+html:not(.dark) button.bg-red-500:hover,
+html:not(.dark) button.bg-\[\#22C55E\]:hover,
+html:not(.dark) button.bg-blue-500:hover,
+html:not(.dark) button.bg-\[\#3B82F6\]:hover {
+  color: #FFFFFF !important;
+}
+
+/* Text inputs, selectors, and textareas */
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  background-color: #FFFFFF !important;
+  color: #1F2937 !important;
+  border-color: #D1D5DB !important;
+}
+
+html:not(.dark) input::placeholder {
+  color: #9CA3AF !important;
+}
+
+/* Recharts grid lines stroke */
+html:not(.dark) .recharts-cartesian-grid-horizontal line,
+html:not(.dark) .recharts-cartesian-grid-vertical line {
+  stroke: #E5E7EB !important;
+}
+
+/* Tooltip container styling */
+html:not(.dark) .recharts-default-tooltip {
+  background-color: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+  color: #1F2937 !important;
+}
+
+/* Interactive tables and lists details */
+html:not(.dark) tr:hover {
+  background-color: #F8FAFC !important;
+}
+
+/* Auth grid pattern override for light mode */
+html:not(.dark) .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(17, 24, 39, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 24, 39, 0.05) 1px, transparent 1px) !important;
+}

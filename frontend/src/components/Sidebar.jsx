@@ -30,61 +30,46 @@ export default function Sidebar({
 
 
   const navItems = [
-
     {
       name: "Dashboard",
       icon: LayoutDashboard,
       path: "/dashboard",
     },
-
     {
       name: "Fleet",
       icon: Truck,
       path: "/fleet",
     },
-
     {
       name: "Drivers",
       icon: Users,
       path: "/drivers",
     },
-
-    {
-      name: "Trips",
-      icon: Route,
-      path: "/trips",
-    },
-
     {
       name: "Trip Dispatcher",
       icon: Send,
       path: "/trip-dispatcher",
     },
-
     {
       name: "Maintenance",
       icon: Wrench,
       path: "/maintenance",
     },
-
     {
       name: "Fuel & Expenses",
       icon: Fuel,
       path: "/fuel-management",
     },
-
     {
       name: "Analytics",
       icon: BarChart3,
       path: "/analytics",
     },
-
     {
       name: "Settings",
       icon: Settings,
       path: "/settings",
     },
-
   ];
 
 
@@ -93,7 +78,7 @@ export default function Sidebar({
 
     navigate(path);
 
-    if(isOpen && onClose){
+    if (isOpen && onClose) {
       onClose();
     }
 
@@ -141,6 +126,7 @@ export default function Sidebar({
       <aside
 
         className={`
+<<<<<<< HEAD
         fixed
         md:sticky
         top-0
@@ -157,23 +143,36 @@ export default function Sidebar({
         duration-300
 
 
-        ${
-          isOpen
-          ?
-          "translate-x-0"
-          :
-          "-translate-x-full md:translate-x-0"
-        }
+        ${isOpen
+            ?
+            "translate-x-0"
+            :
+            "-translate-x-full md:translate-x-0"
+          }
 
 
-        ${
-          isCollapsed
-          ?
-          "w-20"
-          :
-          "w-[260px]"
-        }
+        ${isCollapsed
+            ?
+            "w-20"
+            :
+            "w-[260px]"
+          }
 
+=======
+          fixed md:sticky
+          top-0 left-0
+          z-50
+          h-screen
+          bg-[#15181E]/80 backdrop-blur-md
+          border-r border-[#2B3038]
+          flex flex-col justify-between
+          transition-all duration-300
+          ${isOpen
+            ? 'translate-x-0'
+            : '-translate-x-full md:translate-x-0'
+          }
+          ${isCollapsed ? 'w-20' : 'w-[260px]'}
+>>>>>>> dd0f8cb (theme toggle applied)
         `}
 
       >
@@ -273,10 +272,10 @@ export default function Sidebar({
 
             {
               isCollapsed
-              ?
-              <ChevronRight size={14}/>
-              :
-              <ChevronLeft size={14}/>
+                ?
+                <ChevronRight size={14} />
+                :
+                <ChevronLeft size={14} />
             }
 
 
@@ -296,7 +295,7 @@ export default function Sidebar({
 
           >
 
-            <X size={18}/>
+            <X size={18} />
 
           </button>
 
@@ -320,13 +319,13 @@ export default function Sidebar({
 
 
           {
-            navItems.map((item)=>{
+            navItems.map((item) => {
 
 
               const Icon = item.icon;
 
               const active =
-              location.pathname === item.path;
+                location.pathname === item.path;
 
 
 
@@ -336,7 +335,7 @@ export default function Sidebar({
 
                   key={item.name}
 
-                  onClick={()=>handleNavigation(item.path)}
+                  onClick={() => handleNavigation(item.path)}
 
                   className={`
 
@@ -351,18 +350,17 @@ export default function Sidebar({
                   relative
 
 
-                  ${
-                    active
+                  ${active
 
-                    ?
+                      ?
 
-                    "bg-[#F59E0B] text-white shadow-md"
+                      "bg-[#F59E0B] text-white shadow-md"
 
-                    :
+                      :
 
-                    "text-[#9CA3AF] hover:bg-[#171A21] hover:text-white"
+                      "text-[#9CA3AF] hover:bg-[#171A21] hover:text-white"
 
-                  }
+                    }
 
                   `}
 
@@ -373,7 +371,7 @@ export default function Sidebar({
                     active && (
 
                       <div
-                      className="
+                        className="
                       absolute
                       left-0
                       w-1
@@ -388,7 +386,7 @@ export default function Sidebar({
 
 
 
-                  <Icon size={20}/>
+                  <Icon size={20} />
 
 
 
@@ -451,7 +449,7 @@ export default function Sidebar({
 
           >
 
-            <LogOut size={16}/>
+            <LogOut size={16} />
 
 
             {

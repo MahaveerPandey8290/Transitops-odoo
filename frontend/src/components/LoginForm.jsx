@@ -68,6 +68,9 @@ export default function LoginForm() {
       setTimeout(() => {
         setIsLoading(false);
         setIsSuccess(true);
+        // Save selected user role in localStorage
+        localStorage.setItem('userRole', formData.role || 'Dispatcher');
+        
         // Redirect to dashboard after a brief delay
         setTimeout(() => {
           setIsSuccess(false);

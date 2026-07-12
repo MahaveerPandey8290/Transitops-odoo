@@ -30,6 +30,7 @@ export default function Sidebar({
 
 
   const navItems = [
+
     {
       name: "Dashboard",
       icon: LayoutDashboard,
@@ -83,13 +84,8 @@ export default function Sidebar({
       icon: Settings,
       path: "/settings",
     },
+
   ];
-
-
-
-  const handleLogout = () => {
-    navigate("/login");
-  };
 
 
 
@@ -97,9 +93,17 @@ export default function Sidebar({
 
     navigate(path);
 
-    if (isOpen && onClose) {
+    if(isOpen && onClose){
       onClose();
     }
+
+  };
+
+
+
+  const handleLogout = () => {
+
+    navigate("/login");
 
   };
 
@@ -109,13 +113,22 @@ export default function Sidebar({
 
     <>
 
+
       {/* Mobile Overlay */}
+
       {
         isOpen && (
 
           <div
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            className="
+            fixed
+            inset-0
+            z-40
+            bg-black/60
+            backdrop-blur-sm
+            md:hidden
+            "
           />
 
         )
@@ -126,44 +139,79 @@ export default function Sidebar({
       {/* Sidebar */}
 
       <aside
+
         className={`
-          fixed md:sticky
-          top-0 left-0
-          z-50
-          h-screen
-          bg-[#15181E]
-          border-r border-[#2B3038]
-          flex flex-col justify-between
-          transition-all duration-300
+        fixed
+        md:sticky
+        top-0
+        left-0
+        z-50
+        h-screen
+        bg-[#15181E]
+        border-r
+        border-[#2B3038]
+        flex
+        flex-col
+        justify-between
+        transition-all
+        duration-300
 
-          ${
-            isOpen
-              ? "translate-x-0"
-              : "-translate-x-full md:translate-x-0"
-          }
 
-          ${
-            isCollapsed
-              ? "w-20"
-              : "w-[260px]"
-          }
+        ${
+          isOpen
+          ?
+          "translate-x-0"
+          :
+          "-translate-x-full md:translate-x-0"
+        }
+
+
+        ${
+          isCollapsed
+          ?
+          "w-20"
+          :
+          "w-[260px]"
+        }
 
         `}
+
       >
 
 
 
         {/* Logo */}
 
-        <div className="p-5 border-b border-[#2B3038] flex items-center justify-between relative">
+        <div className="
+        p-5
+        border-b
+        border-[#2B3038]
+        flex
+        items-center
+        justify-between
+        relative
+        ">
 
 
           <div className="flex items-center gap-3">
 
 
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+            <div className="
+            w-8
+            h-8
+            rounded-lg
+            bg-gradient-to-br
+            from-[#F59E0B]
+            to-[#D97706]
+            flex
+            items-center
+            justify-center
+            ">
 
-              <Route size={16} className="text-white"/>
+              <Route
+                size={16}
+                className="text-white"
+              />
 
             </div>
 
@@ -174,7 +222,7 @@ export default function Sidebar({
 
                 <div>
 
-                  <h1 className="text-white font-bold text-base">
+                  <h1 className="text-white font-bold">
 
                     Transit
                     <span className="text-[#F59E0B]">
@@ -201,20 +249,21 @@ export default function Sidebar({
 
 
 
-
-          {/* Collapse Button */}
-
           <button
 
             onClick={onToggleCollapse}
 
             className="
-            hidden md:flex
-            absolute -right-3
-            w-7 h-7
+            hidden
+            md:flex
+            absolute
+            -right-3
+            w-7
+            h-7
             rounded-full
             bg-[#171A21]
-            border border-[#2B3038]
+            border
+            border-[#2B3038]
             items-center
             justify-center
             text-gray-400
@@ -224,10 +273,10 @@ export default function Sidebar({
 
             {
               isCollapsed
-                ?
-                <ChevronRight size={14}/>
-                :
-                <ChevronLeft size={14}/>
+              ?
+              <ChevronRight size={14}/>
+              :
+              <ChevronLeft size={14}/>
             }
 
 
@@ -236,14 +285,14 @@ export default function Sidebar({
 
 
 
-
-          {/* Mobile Close */}
-
           <button
 
             onClick={onClose}
 
-            className="md:hidden text-gray-400"
+            className="
+            md:hidden
+            text-gray-400
+            "
 
           >
 
@@ -259,16 +308,14 @@ export default function Sidebar({
 
 
 
-
         {/* Navigation */}
 
         <nav className="
-          flex-1
-          py-6
-          px-3
-          overflow-y-auto
-          space-y-1
-          scrollbar-thin
+        flex-1
+        py-6
+        px-3
+        space-y-1
+        overflow-y-auto
         ">
 
 
@@ -278,8 +325,8 @@ export default function Sidebar({
 
               const Icon = item.icon;
 
-              const isActive =
-                location.pathname === item.path;
+              const active =
+              location.pathname === item.path;
 
 
 
@@ -292,52 +339,48 @@ export default function Sidebar({
                   onClick={()=>handleNavigation(item.path)}
 
                   className={`
-                    w-full
-                    flex
-                    items-center
-                    gap-3
-                    px-3
-                    py-3
-                    rounded-xl
-                    transition-all
-                    duration-200
-                    group
-                    relative
 
-                    ${
-                      isActive
+                  w-full
+                  flex
+                  items-center
+                  gap-3
+                  px-3
+                  py-3
+                  rounded-xl
+                  transition-all
+                  relative
 
-                      ?
 
-                      "bg-[#F59E0B] text-white font-bold shadow-md shadow-[#F59E0B]/20"
+                  ${
+                    active
 
-                      :
+                    ?
 
-                      "text-[#9CA3AF] hover:bg-[#171A21] hover:text-white"
+                    "bg-[#F59E0B] text-white shadow-md"
 
-                    }
+                    :
+
+                    "text-[#9CA3AF] hover:bg-[#171A21] hover:text-white"
+
+                  }
 
                   `}
 
                 >
 
 
-
                   {
-                    isActive && (
+                    active && (
 
                       <div
-
-                        className="
-                        absolute
-                        left-0
-                        top-1/3
-                        bottom-1/3
-                        w-1
-                        bg-white
-                        rounded-r-full
-                        "
-
+                      className="
+                      absolute
+                      left-0
+                      w-1
+                      h-8
+                      bg-white
+                      rounded-r-full
+                      "
                       />
 
                     )
@@ -345,34 +388,7 @@ export default function Sidebar({
 
 
 
-
-                  <Icon
-
-                    size={20}
-
-                    className={`
-                      flex-shrink-0
-                      transition-transform
-                      duration-200
-
-                      ${
-                        isActive
-
-                        ?
-
-                        "text-white"
-
-                        :
-
-                        "text-[#9CA3AF] group-hover:text-white group-hover:scale-105"
-
-                      }
-
-                    `}
-
-                  />
-
-
+                  <Icon size={20}/>
 
 
 
@@ -390,15 +406,13 @@ export default function Sidebar({
 
 
 
-
-
                 </button>
 
               );
 
+
             })
           }
-
 
 
         </nav>
@@ -407,9 +421,14 @@ export default function Sidebar({
 
 
 
-        {/* Footer */}
 
-        <div className="p-4 border-t border-[#2B3038]">
+        {/* Logout */}
+
+        <div className="
+        p-4
+        border-t
+        border-[#2B3038]
+        ">
 
 
           <button
@@ -428,7 +447,6 @@ export default function Sidebar({
             border-[#2B3038]
             text-red-400
             hover:bg-red-500/10
-            transition-colors
             "
 
           >
@@ -448,7 +466,6 @@ export default function Sidebar({
 
 
         </div>
-
 
 
 
